@@ -55,8 +55,8 @@ On signup form:
 
 ```
 Email:              autolabstation@gmail.com
-Password:           [Create strong password]
-Confirm Password:   [Type same password]
+Password:           AutoLab@2024#
+Confirm Password:   AutoLab@2024#
 ```
 
 **Password requirements:**
@@ -176,7 +176,7 @@ After creation, you'll see:
 1. **You'll see:** A long connection string starting with `postgresql://`
 2. **It looks like:**
    ```
-   postgresql://postgres:PASSWORD@db.PROJECTID.supabase.co:5432/postgres
+   postgresql://postgres::AutoLab@2024#@db.PROJECTID.supabase.co:5432/postgres
    ```
 
 3. **Click:** Copy button (icon to the right)
@@ -513,11 +513,12 @@ INSERT INTO bookings (id, user_id, vehicle_id, service_center_id, service_type, 
 ```
 Database Name:         autolab-db
 Database Password:     AutoLab@2024#
-Connection String:     postgresql://postgres:AutoLab@2024#@db.PROJECT_ID.supabase.co:5432/postgres
+Connection String:     postgresql://postgres:AutoLab@2024#@db.kdbcukdrbwwsgntrsvdi.supabase.co:5432/postgres
 Region:                Asia - Singapore (or India - Mumbai)
 Tables Created:        6 (users, vehicles, service_centers, car_services, bike_services, bookings)
 Test Data Added:       ✅ Yes
 ```
+
 
 **Save in:** `SETUP_GUIDES/11_CREDENTIALS_VAULT.md` (next step)
 
