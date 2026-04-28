@@ -1,0 +1,46 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "car_service",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "vechile_no",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "bike_service",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "vechile_no",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "vechile_details",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "mobile",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ]
+}

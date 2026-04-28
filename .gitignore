@@ -1,0 +1,43 @@
+﻿# Environment files
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Dependencies
+node_modules/
+yarn.lock
+pnpm-lock.yaml
+package-lock.json
+
+# Build outputs
+dist/
+build/
+.next/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Firebase
+serviceAccountKey.json
+*.key.json
+
+# Flutter
+.flutter-plugins
+.packages
+.dart_tool/
+flutter_export_environment.sh
+
+# Prisma
+.prisma/
