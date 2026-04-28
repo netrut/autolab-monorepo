@@ -1,0 +1,27 @@
+﻿{
+  "name": "autolab-monorepo",
+  "version": "1.0.0",
+  "description": "Professional AutoLab Application - Flutter + Backend + Dashboard",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "install-all": "pnpm install",
+    "backend:dev": "cd apps/backend && npm run dev",
+    "backend:build": "cd apps/backend && npm run build",
+    "dashboard:dev": "cd apps/admin-dashboard && npm run dev",
+    "dashboard:build": "cd apps/admin-dashboard && npm run build",
+    "flutter:run": "cd apps/flutter-app && flutter pub get && flutter run",
+    "flutter:build": "cd apps/flutter-app && flutter build apk"
+  },
+  "keywords": [
+    "flutter",
+    "backend",
+    "dashboard",
+    "monorepo"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

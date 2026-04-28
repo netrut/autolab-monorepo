@@ -1,0 +1,31 @@
+{
+  "name": "Autolab Flutter Dev",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  // Forward port 8080 automatically and label it
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Autolab App",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  // Auto-start the web server every time the Codespace opens
+  "postStartCommand": "bash /workspaces/autolab-main/start.sh &",
+
+  // First-time setup when Codespace is first created
+  "postCreateCommand": "sudo apt-get update -qq && sudo apt-get install -y git-lfs python3-minimal psmisc && git lfs install && bash /workspaces/autolab-main/setup.sh",
+  // "postCreateCommand": "bash /workspaces/autolab-main/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.flutter",
+        "Dart-Code.dart-code"
+      ],
+      "settings": {
+        "dart.flutterSdkPath": "/workspaces/autolab-main/flutter"
+      }
+    }
+  }
+}
