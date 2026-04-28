@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "552612158993",
+    "project_id": "autolab-o7oghn",
+    "storage_bucket": "autolab-o7oghn.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552612158993:android:84c3660bf6f0190de65bb0",
+        "android_client_info": {
+          "package_name": "com.auto.autolab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "552612158993-r194tiqcpgcsvmigdphnu54phqinbg0r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.auto.autolab",
+            "certificate_hash": "6572483bc1a8e2aceac258f9f4bcd006ff769a1e",
+            "certificate_hash_sha256": "2aa27dfb536f2de73d39782e06447455226396d57181c36673fd9bde762a86b"
+          }
+        },
+        {
+          "client_id": "552612158993-oi19ovisqkeh9chdo51kue30mrponhfe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8oJOLvu9k_uQt0c4-6TFKa2PMIlXkk-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "552612158993-oi19ovisqkeh9chdo51kue30mrponhfe.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "552612158993-k8fips3uim39o6bl0ls58ldsd7rpd9gs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.auto.autolab"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
