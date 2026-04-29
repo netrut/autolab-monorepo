@@ -1,4 +1,6 @@
 {
+  "version": 2,
+  "name": "autolab-backend",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "env": {
@@ -16,5 +18,10 @@
       "src": "/(.*)",
       "dest": "api/index.ts"
     }
-  ]
+  ],
+  "github": {
+    "enabled": true,
+    "autoAlias": true
+  }
 }
+

@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env';
 
 export const jwtService = {
@@ -9,19 +9,21 @@ export const jwtService = {
   }): string {
     return jwt.sign(payload, env.jwt.secret, {
       expiresIn: env.jwt.expiry,
-    });
+    } as SignOptions);
   },
 
   generateEmailVerificationToken(email: string): string {
-    return jwt.sign({ email, type: 'email_verification' }, env.jwt.secret, {
+    const options: SignOptions = {
       expiresIn: '24h',
-    });
+    };
+    return jwt.sign({ email, type: 'email_verification' }, env.jwt.secret, options);
   },
 
   generatePasswordResetToken(email: string): string {
-    return jwt.sign({ email, type: 'password_reset' }, env.jwt.secret, {
+    const options: SignOptions = {
       expiresIn: '1h',
-    });
+    };
+    return jwt.sign({ email, type: 'password_reset' }, env.jwt.secret, options);
   },
 
   verifyToken(token: string): any {

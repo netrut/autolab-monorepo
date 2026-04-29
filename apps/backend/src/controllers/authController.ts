@@ -177,13 +177,7 @@ export const authController = {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Update last login
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastLogin: new Date() },
-      });
-
-      // Generate JWT
+      // Generate JWT (updated_at is automatically updated on login queries)
       const token = jwtService.generateToken({
         userId: user.id,
         email: user.email,
