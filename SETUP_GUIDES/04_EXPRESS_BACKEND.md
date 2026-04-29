@@ -14,7 +14,7 @@ A production-ready Express API with:
 
 - ✅ **User Authentication** (Email/Password + Phone/OTP)
 - ✅ **JWT Token Generation** (7-day expiry)
-- ✅ **OTP Verification** (Via SMS via Twilio)
+- ✅ **OTP Verification** (Via SMS via HSP Media Network)
 - ✅ **Email Sending** (Via Gmail Nodemailer)
 - ✅ **Password Reset** (Email-based)
 - ✅ **User Management** (CRUD operations)
@@ -38,7 +38,7 @@ Before starting:
 - ✅ Database credentials ready
 - ✅ GitHub repo created
 - ✅ VS Code or IDE ready
-- ✅ Twilio account (for SMS)
+- ✅ HSP Media Network SMS API credentials
 - ✅ Gmail account with app password (for email)
 - ✅ Read: ARCHITECTURE_CLARIFICATIONS.md
 
@@ -87,7 +87,7 @@ This creates `package.json`. Now update it:
     "jsonwebtoken": "^9.0.0",
     "bcryptjs": "^2.4.3",
     "nodemailer": "^6.9.0",
-    "twilio": "^3.91.0",
+    "axios": "^1.4.0"
     "cors": "^2.8.5",
     "helmet": "^7.0.0",
     "express-rate-limit": "^6.7.0",
@@ -121,7 +121,7 @@ Create `tsconfig.json`:
 
 ```json
 {
-  "compilerOptions": {
+  "compilerOptions": {  
     "target": "ES2020",
     "module": "ES2020",
     "moduleResolution": "node",
@@ -175,7 +175,7 @@ backend/
 │   │   └── rateLimit.ts             (Rate limiting)
 │   ├── services/
 │   │   ├── emailService.ts          (Nodemailer)
-│   │   ├── smsService.ts            (Twilio)
+│   │   ├── smsService.ts            (HSP SMS API)
 │   │   ├── jwtService.ts            (JWT tokens)
 │   │   └── redisService.ts          (Redis cache)
 │   ├── utils/
@@ -215,7 +215,8 @@ Create `.env.example`:
 
 ```bash
 # Database
-DATABASE_URL="postgresql://user:password@db.supabase.co:5432/autolab-db?schema=public"
+DATABASE_URL="postgresql://postgres:AutoLab%402024%23@db.kdbcukdrbwwsgntrsvdi.supabase.co:5432/postgres"
+
 
 # Server
 NODE_ENV=development
@@ -230,10 +231,10 @@ JWT_EXPIRY=7d
 GMAIL_USER=your-email@gmail.com
 GMAIL_PASS=your-app-specific-password    # Not your real password!
 
-# SMS (Twilio)
-TWILIO_ACCOUNT_SID=ACxxx
-TWILIO_AUTH_TOKEN=xxx
-TWILIO_PHONE_NUMBER=+1234567890
+# SMS (HSP Media Network)
+HSP_SMS_USERNAME=ludoveer
+HSP_SMS_API_KEY=d35d1647-fb94-4ad5-843c-65e35c2eb93a
+HSP_SMS_SENDER=HIFCAR
 
 # Redis (for OTP caching)
 REDIS_URL=redis://localhost:6379
@@ -268,8 +269,9 @@ const requiredEnvVars = [
   'JWT_SECRET',
   'GMAIL_USER',
   'GMAIL_PASS',
-  'TWILIO_ACCOUNT_SID',
-  'TWILIO_AUTH_TOKEN',
+  'HSP_SMS_USERNAME',
+  'HSP_SMS_API_KEY',
+  'HSP_SMS_SENDER',
 ];
 
 requiredEnvVars.forEach((envVar) => {
@@ -298,10 +300,10 @@ export const env = {
     },
   },
   sms: {
-    twilio: {
-      accountSid: process.env.TWILIO_ACCOUNT_SID!,
-      authToken: process.env.TWILIO_AUTH_TOKEN!,
-      phoneNumber: process.env.TWILIO_PHONE_NUMBER!,
+    hsp: {
+      username: process.env.HSP_SMS_USERNAME!,
+      apiKey: process.env.HSP_SMS_API_KEY!,
+      senderName: process.env.HSP_SMS_SENDER!,
     },
   },
   redis: {
@@ -649,23 +651,20 @@ export const emailService = {
 Create `src/services/smsService.ts`:
 
 ```typescript
-import twilio from 'twilio';
+import axios from 'axios';
 import { env } from '../config/env';
 
-const twilioClient = twilio(
-  env.sms.twilio.accountSid,
-  env.sms.twilio.authToken
-);
+function buildSmsApiUrl(phoneNumber: string, otp: string) {
+  const phone = phoneNumber.replace(/\D/g, '');
+  const message = `OTP for login HireForCare is ${otp}.`;
+
+  return `https://sms.hspmedianetwork.com/sendSMS?username=${encodeURIComponent(env.sms.hsp.username)}&message=${encodeURIComponent(message)}&sendername=${encodeURIComponent(env.sms.hsp.senderName)}&smstype=TRANS&numbers=91${phone}&apikey=${encodeURIComponent(env.sms.hsp.apiKey)}`;
+}
 
 export const smsService = {
   async sendOTP(phoneNumber: string, otp: string) {
-    const message = `Your AutoLab OTP is: ${otp}. Valid for 10 minutes.`;
-
-    await twilioClient.messages.create({
-      body: message,
-      from: env.sms.twilio.phoneNumber,
-      to: phoneNumber,
-    });
+    const smsApiUrl = buildSmsApiUrl(phoneNumber, otp);
+    await axios.get(smsApiUrl);
   },
 
   async sendBookingNotification(
@@ -673,13 +672,11 @@ export const smsService = {
     serviceName: string,
     date: string
   ) {
+    const phone = phoneNumber.replace(/\D/g, '');
     const message = `Your AutoLab booking for ${serviceName} on ${date} is confirmed.`;
+    const smsApiUrl = `https://sms.hspmedianetwork.com/sendSMS?username=${encodeURIComponent(env.sms.hsp.username)}&message=${encodeURIComponent(message)}&sendername=${encodeURIComponent(env.sms.hsp.senderName)}&smstype=TRANS&numbers=91${phone}&apikey=${encodeURIComponent(env.sms.hsp.apiKey)}`;
 
-    await twilioClient.messages.create({
-      body: message,
-      from: env.sms.twilio.phoneNumber,
-      to: phoneNumber,
-    });
+    await axios.get(smsApiUrl);
   },
 };
 ```
@@ -1140,7 +1137,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 curl -X POST http://localhost:3000/api/auth/send-otp \
   -H "Content-Type: application/json" \
   -d '{
-    "phone": "+919876543210"
+    "phone": "+918000653388"
   }'
 ```
 

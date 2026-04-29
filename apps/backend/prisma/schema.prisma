@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique @db.VarChar(255)
+  phone_number  String?         @unique @db.VarChar(20)
+  display_name  String?         @db.VarChar(255)
+  password_hash String?         @db.VarChar(255)
+  role_id       Int?            @default(2)
+  avatar_url    String?         @db.VarChar(255)
+  bio           String?
+  address       String?
+  is_active     Boolean?        @default(true)
+  firebase_uid  String?         @unique @db.VarChar(255)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  bike_services bike_services[]
+  bookings      Booking[]
+  car_services  car_services[]
+  vehicles      Vehicle[]
+
+  @@index([email], map: "idx_users_email")
+  @@map("users")
+}
+
+model Vehicle {
+  id                  String          @id @default(uuid())
+  user_id             String
+  vehicle_type        String          @db.VarChar(50)
+  brand               String          @db.VarChar(100)
+  model               String          @db.VarChar(100)
+  year                Int?
+  registration_number String?         @unique @db.VarChar(50)
+  vehicle_color       String?         @db.VarChar(50)
+  fuel_type           String?         @db.VarChar(50)
+  transmission        String?         @db.VarChar(50)
+  mileage_km          Decimal?        @db.Decimal(10, 2)
+  notes               String?
+  is_active           Boolean?        @default(true)
+  created_at          DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?       @default(now()) @db.Timestamp(6)
+  bike_services       bike_services[]
+  bookings            Booking[]
+  car_services        car_services[]
+  users               User            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_vehicles_user_id")
+  @@map("vehicles")
+}
+
+model ServiceCenter {
+  id            String          @id @default(uuid())
+  name          String          @db.VarChar(255)
+  description   String?
+  phone         String          @db.VarChar(20)
+  email         String?         @db.VarChar(255)
+  address       String?
+  city          String?         @db.VarChar(100)
+  state         String?         @db.VarChar(100)
+  pincode       String?         @db.VarChar(10)
+  rating        Decimal?        @default(0) @db.Decimal(3, 2)
+  is_verified   Boolean?        @default(false)
+  is_active     Boolean?        @default(true)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  bike_services bike_services[]
+  bookings      Booking[]
+  car_services  car_services[]
+
+  @@map("service_centers")
+}
+
+model Booking {
+  id                String        @id @default(uuid())
+  user_id           String
+  vehicle_id        String
+  service_center_id String
+  service_type      String        @db.VarChar(100)
+  booking_date      DateTime      @db.Timestamp(6)
+  status            String?       @default("pending") @db.VarChar(50)
+  notes             String?
+  created_at        DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?     @default(now()) @db.Timestamp(6)
+  service_centers   ServiceCenter @relation(fields: [service_center_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users             User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vehicles          Vehicle       @relation(fields: [vehicle_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([status], map: "idx_bookings_status")
+  @@index([user_id], map: "idx_bookings_user_id")
+  @@map("bookings")
+}
+
+model bike_services {
+  id                String        @id
+  vehicle_id        String
+  service_center_id String
+  user_id           String
+  service_type      String        @db.VarChar(100)
+  description       String?
+  status            String?       @default("pending") @db.VarChar(50)
+  scheduled_date    DateTime?     @db.Timestamp(6)
+  completed_date    DateTime?     @db.Timestamp(6)
+  estimated_cost    Decimal?      @db.Decimal(10, 2)
+  actual_cost       Decimal?      @db.Decimal(10, 2)
+  notes             String?
+  created_at        DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?     @default(now()) @db.Timestamp(6)
+  service_centers   ServiceCenter @relation(fields: [service_center_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users             User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vehicles          Vehicle       @relation(fields: [vehicle_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([vehicle_id], map: "idx_bike_services_vehicle_id")
+}
+
+model car_services {
+  id                String        @id
+  vehicle_id        String
+  service_center_id String
+  user_id           String
+  service_type      String        @db.VarChar(100)
+  description       String?
+  status            String?       @default("pending") @db.VarChar(50)
+  scheduled_date    DateTime?     @db.Timestamp(6)
+  completed_date    DateTime?     @db.Timestamp(6)
+  estimated_cost    Decimal?      @db.Decimal(10, 2)
+  actual_cost       Decimal?      @db.Decimal(10, 2)
+  notes             String?
+  created_at        DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?     @default(now()) @db.Timestamp(6)
+  service_centers   ServiceCenter @relation(fields: [service_center_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users             User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vehicles          Vehicle       @relation(fields: [vehicle_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([status], map: "idx_car_services_status")
+  @@index([vehicle_id], map: "idx_car_services_vehicle_id")
+}

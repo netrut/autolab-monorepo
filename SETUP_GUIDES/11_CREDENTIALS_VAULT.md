@@ -38,9 +38,9 @@ This file contains **SENSITIVE INFORMATION**:
 ### GitHub Account
 
 ```
-Username:               [Your GitHub username]
-Email:                 [Your email address]
-Account URL:           https://github.com/[username]
+Username:              autolab monorepo
+Email:                 autolabstation@gmail.com
+Account URL:           https://github.com/netrut/autolab-monorepo
 Profile Type:          Personal / Organization
 Status:                Created
 ```
@@ -79,7 +79,7 @@ Status:                 [Active/Inactive]
 
 ```
 Email:                  autolabstation@gmail.com
-Password:               [Supabase account password - NOT database password!]
+Password:               AutoLab@2024#
 Account URL:            https://app.supabase.com
 Status:                 ✅ Account created & verified
 Two-Factor Auth:        [Enable for security]
@@ -89,19 +89,29 @@ Two-Factor Auth:        [Enable for security]
 
 ```
 Project Name:           autolab-db
-Project ID:             [Your unique project ID]
-Project URL:            https://app.supabase.com/project/[PROJECT_ID]
+Project ID:             kdbcukdrbwwsgntrsvdi
+Project URL:            https://app.supabase.com/project/kdbcukdrbwwsgntrsvdi
 Region:                 Asia - Singapore (or India - Mumbai)
 Database Version:       PostgreSQL 15.x
 Free Tier Status:       ✅ Using free tier
+
 ```
+### Supabase data credentials: autolab-db
+
+Database Name:         autolab-db
+Database Password:     AutoLab@2024#
+Connection String:     postgresql://postgres:AutoLab@2024#@db.kdbcukdrbwwsgntrsvdi.supabase.co:5432/postgres
+Region:                Asia - Singapore (or India - Mumbai)
+Tables Created:        6 (users, vehicles, service_centers, car_services, bike_services, bookings)
+Test Data Added:       ✅ Yes
+
 
 ### Database Credentials
 
 ```
-Database User:          postgres
+Database User:          autolab db
 Database Password:      AutoLab@2024#
-Database Host:          db.[PROJECT_ID].supabase.co
+Database Host:          db.kdbcukdrbwwsgntrsvdi.supabase.co
 Database Port:          5432
 Database Name:          postgres
 SSL Mode:               require
@@ -182,13 +192,15 @@ Measurement ID:         [Optional]
 
 ### Vercel Account
 
+Password:               AutoLab@2024#
+
 ```
-Email:                  [Your Vercel email]
-Account Name:           [Your account name]
-Team Name:              [Your team - if applicable]
-Account URL:            https://vercel.com/[account]
+Email:                  autolabstation@gmail.com
+Account Name:           Autolab
+Team Name:              autolabs-projects-cd9ae143
+Account URL:            https://vercel.com/autolabstation-7857
 Status:                 [Account created/Not yet]
-Tier:                   [Free/Pro/Enterprise]
+Tier:                   Free
 ```
 
 ### Vercel API Token
@@ -321,15 +333,14 @@ Monthly Limit:          300 emails (free tier)
 
 ### SMS Service: Third-Party API (Choose One)
 
-**Option 1: Twilio**
+**Option 1: HSP Media Network**
 ```
-Service:                Twilio
-Account SID:            [Your Account SID]
-Auth Token:             [Your Auth Token - KEEP SECRET]
-Phone Number:           [Your Twilio phone number]
-Account URL:            https://www.twilio.com/console
+Service:                HSP Media Network
+Username:               ludoveer
+API Key:                [Your API key - KEEP SECRET]
+Sender Name:            HIFCAR
+Endpoint:               https://sms.hspmedianetwork.com/sendSMS
 Status:                 [Account created/Not yet]
-Free Trial Credit:      $15 (expires after 30 days)
 ```
 
 **Option 2: AWS SNS**
@@ -353,7 +364,7 @@ Status:                 [Account created/Not yet]
 ```
 
 **How to choose:**
-- **Twilio:** Most reliable, well-documented, good for global reach
+- **HSP Media Network:** Use this for the current AutoLab SMS flow
 - **AWS SNS:** Best if using AWS infrastructure, cost-effective at scale
 - **Vonage:** Good alternative, competitive pricing
 
@@ -375,11 +386,10 @@ BREVO_API_KEY=[Your Brevo API key - KEEP SECRET]
 BREVO_SENDER_EMAIL=autolabstation@gmail.com
 BREVO_SENDER_NAME=AutoLab
 
-# SMS (Third-party service - Choose one)
-# Option 1: Twilio
-TWILIO_ACCOUNT_SID=[Your Twilio Account SID]
-TWILIO_AUTH_TOKEN=[Your Twilio Auth Token - KEEP SECRET]
-TWILIO_PHONE_NUMBER=+1234567890
+# SMS (HSP Media Network)
+HSP_SMS_USERNAME=ludoveer
+HSP_SMS_API_KEY=[Your HSP SMS API key - KEEP SECRET]
+HSP_SMS_SENDER=HIFCAR
 
 # Option 2: AWS SNS
 AWS_SNS_REGION=us-east-1
