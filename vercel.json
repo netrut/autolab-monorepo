@@ -1,0 +1,5 @@
+{
+  "version": 2,
+  "buildCommand": "cd apps/backend && npm run build",
+  "outputDirectory": "apps/backend/dist"
+}

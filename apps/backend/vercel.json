@@ -3,14 +3,10 @@
   "name": "autolab-backend",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "env": {
-    "NODE_ENV": "production"
-  },
   "functions": {
     "api/index.ts": {
       "memory": 1024,
-      "maxDuration": 60,
-      "runtime": "nodejs20.x"
+      "maxDuration": 60
     }
   },
   "routes": [
