@@ -33,3 +33,9 @@ Restart backend port
 ---------------------------------
 
 
+vercel deply logs check thru CLI
+cd /workspaces/autolab-monorepo/apps/backend && vercel inspect https://backend-qk188tahh-autolabs-projects-cd9ae143.vercel.app --logs
+
+
+vercel  logs after deply check thru CLI
+vercel logs dpl_86J9vGNjAS2mpW6n6ScRqQPJUKCM --no-follow --since 20m --status-code 500 --json

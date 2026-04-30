@@ -217,3 +217,26 @@ app.use((err: any, req: any, res: any, next: any) => {
 
 // Export as default for Vercel serverless function
 export default app;
+
+/**
+ * ============================================
+ * LOCAL DEVELOPMENT SERVER
+ * ============================================
+ * 
+ * For local development, run: npm run dev
+ * This will start the Express server on PORT 5000
+ */
+
+if (import.meta.url === `file://${process.argv[1]}`){
+  const PORT = env.server.port || 5000;
+  app.listen(PORT, () => {
+    console.log('\n🚀 AutoLab Backend Server Started');
+    console.log('═'.repeat(50));
+    console.log(`📍 Running at http://localhost:${PORT}`);
+    console.log(`🌍 Environment: ${env.server.nodeEnv}`);
+    console.log(`📊 Health Check: http://localhost:${PORT}/health`);
+    console.log(`📚 API Docs: http://localhost:${PORT}/`);
+    console.log('═'.repeat(50));
+    console.log('\n✅ Ready to accept requests\n');
+  });
+}
