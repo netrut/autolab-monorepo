@@ -28,7 +28,7 @@ import servicesRoutes from '../src/routes/services.routes';
 import vehiclesRoutes from '../src/routes/vehicles.routes';
 
 // Initialize Express app
-const app: express.Application = express();
+const app: any = express();
 
 /**
  * ============================================
@@ -92,7 +92,7 @@ app.use('/api/', apiLimiter);
  */
 
 // Health check endpoint (no rate limiting)
-app.get('/health', (req, res) => {
+app.get('/health', (req: any, res: any) => {
   res.json({
     status: 'OK',
     message: 'Server is running',
@@ -102,7 +102,7 @@ app.get('/health', (req, res) => {
 });
 
 // Root endpoint with API documentation
-app.get('/', (req, res) => {
+app.get('/', (req: any, res: any) => {
   res.json({
     message: 'AutoLab API - Single Handler (Vercel Compatible)',
     version: '1.0.0',
@@ -177,7 +177,7 @@ app.use('/api/vehicles', vehiclesRoutes);
  */
 
 // 404 handler - must be after all routes
-app.use((req, res) => {
+app.use((req: any, res: any) => {
   res.status(404).json({
     error: 'Not Found',
     message: `Route ${req.method} ${req.path} does not exist`,
@@ -189,7 +189,7 @@ app.use((req, res) => {
 });
 
 // Global error handler - must be last
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: any, res: any, next: any) => {
   console.error('[ERROR]', {
     message: err.message,
     stack: err.stack,
