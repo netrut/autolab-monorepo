@@ -1,7 +1,9 @@
 {
   "version": 2,
-  "installCommand": "npm install",
-  "buildCommand": "npm run prisma:generate && npm run build",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "buildCommand": "npm ci && npm run prisma:generate && npm run build",
   "outputDirectory": "dist",
   "routes": [
     {
