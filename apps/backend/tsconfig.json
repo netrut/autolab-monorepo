@@ -7,7 +7,7 @@
     "outDir": "./dist",
     "rootDir": ".",
     "strict": true,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
@@ -17,7 +17,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*", "api/**/*"],
   "exclude": ["node_modules", "dist"]
