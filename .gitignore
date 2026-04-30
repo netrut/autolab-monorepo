@@ -41,3 +41,5 @@ flutter_export_environment.sh
 
 # Prisma
 .prisma/
+.vercel
+.env*.local
