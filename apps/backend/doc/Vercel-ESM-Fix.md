@@ -6,7 +6,7 @@ Date: 2026-04-30
 When deploying the backend to Vercel the function invocations failed with the following runtime error in the Vercel logs:
 
 /var/task/src/server.js:7
-import app from '../api/index.js';
+import app from './src/index.js';
 ^^^^^^
 
 SyntaxError: Cannot use import statement outside a module
@@ -19,11 +19,12 @@ Vercel reported that the deployed file was being loaded as CommonJS while the co
 
 ## Summary of actions taken (what I changed)
 1. Added a root-level wrapper entrypoint for Vercel to detect:
-   - Added `apps/backend/server.ts` that exports the Express app from `api/index` so Vercel can pick a clear module entrypoint.
+   - Added `apps/backend/server.ts` that exports the Express app from `src/index.js` so Vercel can pick a clear module entrypoint.
+   - Moved the API handler from `apps/backend/api/index.ts` into `apps/backend/src/index.ts` so the runtime path is consistent.
 2. Updated `apps/backend/package.json` to give an explicit main entry in the backend package:
    - Set `"main": "server.ts"` so Vercel sees the intended file to use as an entrypoint.
-3. Updated `vercel.json` for the backend to ensure requests route to the serverless function built from `api/index`:
-   - Added / adjusted `rewrites` to route `/(.*)` → `/api/index` (so the Express app handles public routes).
+3. Updated `vercel.json` for the backend to ensure requests route to the serverless function built from `src/index`:
+   - Added / adjusted `rewrites` to route `/(.*)` → `/src/index` (so the Express app handles public routes).
 4. Made the monorepo root package explicit (module boundary):
    - Updated the root `package.json` to include `"type": "module"` and `"main": "apps/backend/server.ts"` so Vercel treats the package correctly as ESM for the backend entry.
 5. Ensured compiled output and dependencies:
@@ -76,8 +77,9 @@ vercel inspect <deployment-url-or-id> --logs
 ```
 
 ## Verification steps performed
-- Confirmed `dist/api/index.js` existed after `tsc`.
-- Confirmed `vercel build` completed using `server.ts` as entrypoint (build output shows root entrypoint chosen).
+- Confirmed `dist/src/index.js` existed after `tsc`.
+- Confirmed `dist/server.js` imports `./src/index.js`.
+- Confirmed `vercel build` completed using `server.ts` as entrypoint.
 - Confirmed successful `vercel --prod` deployment and that `/health` returned JSON (and no ESM loader errors in runtime logs).
 - Rechecked Vercel live logs for the deployment — earlier ESM import errors no longer present.
 
@@ -87,16 +89,17 @@ vercel inspect <deployment-url-or-id> --logs
 
 ## Notes & next steps (recommended)
 - Leave sensitive environment variables configured in Vercel project settings (do not commit `.env` to repo).
-- Consider consolidating `vercel.json` and repository `package.json` semantics so the backend package is an independent package (e.g., `apps/backend/package.json` contains `type` and `main`) to avoid needing to edit root package.json for future deployments.
+- Consider consolidating `vercel.json` and repository `package.json` semantics if you want to remove the root wrapper later.
 - Optionally: ensure all TypeScript imports that become runtime imports include explicit `.js` extensions when targeting ESM (`import x from './file.js'`) — we did not need to do that in the final flow because `type: "module"` + tsc output worked.
 
 ## Where to find the changes
 - The documentation file you are reading: `apps/backend/doc/Vercel-ESM-Fix.md`
 - Key files changed:
-  - [apps/backend/server.ts](apps/backend/server.ts)
-  - [apps/backend/package.json](apps/backend/package.json)
-  - [apps/backend/vercel.json](apps/backend/vercel.json)
-  - [package.json](package.json)
+   - [apps/backend/src/index.ts](apps/backend/src/index.ts)
+   - [apps/backend/server.ts](apps/backend/server.ts)
+   - [apps/backend/package.json](apps/backend/package.json)
+   - [apps/backend/vercel.json](apps/backend/vercel.json)
+   - [package.json](package.json)
 
 If you'd like, I can:
 - Revert the root `package.json` change and instead move `type: "module"` into `apps/backend/package.json` (safer long-term), then push and redeploy.

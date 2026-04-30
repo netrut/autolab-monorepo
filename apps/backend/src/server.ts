@@ -2,7 +2,7 @@
  * AutoLab Backend - Local Development Server
  * 
  * This file starts the Express server for local development.
- * It imports the main app from api/index.ts
+ * It imports the main app from src/index.ts
  */
 
 import app from './index.js';

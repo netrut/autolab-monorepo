@@ -5,6 +5,6 @@
  * a root-level server file while keeping the actual app implementation in api/index.ts.
  */
 
-import app from './src/index';
+import app from './src/index.js';
 
 export default app;
