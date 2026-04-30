@@ -2,7 +2,10 @@
   "version": 2,
   "buildCommand": "npm run prisma:generate && npm run build",
   "outputDirectory": "dist",
-  "functions": {
-    "api/index.ts": {}
-  }
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
+    }
+  ]
 }
