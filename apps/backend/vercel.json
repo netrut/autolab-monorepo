@@ -5,10 +5,17 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "rewrites": [
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs20.x",
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "api/index"
+      "src": "/(.*)",
+      "dest": "api/index.js"
     }
   ]
 }

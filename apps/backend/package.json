@@ -3,6 +3,7 @@
 	"version": "1.0.0",
 	"description": "AutoLab REST API",
 	"type": "module",
+	"main": "dist/api/index.js",
 	"scripts": {
 		"dev": "tsx watch src/server.ts",
 		"build": "tsc",
