@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Professional AutoLab Application - Flutter + Backend + Dashboard",
   "private": true,
+  "type": "module",
+  "main": "apps/backend/server.ts",
   "workspaces": [
     "apps/*",
     "packages/*"
