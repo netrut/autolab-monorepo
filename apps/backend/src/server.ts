@@ -5,7 +5,7 @@
  * It imports the main app from api/index.ts
  */
 
-import app from '../api/index.js';
+import app from './index.js';
 import { env } from './config/env.js';
 
 const PORT = env.server.port || 3000;
