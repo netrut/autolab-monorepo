@@ -19,10 +19,11 @@ Vercel reported that the deployed file was being loaded as CommonJS while the co
 
 ## Summary of actions taken (what I changed)
 1. Added a root-level wrapper entrypoint for Vercel to detect:
-   - Added `apps/backend/server.ts` that exports the Express app from `src/index.js` so Vercel can pick a clear module entrypoint.
+   - Added `apps/backend/server.mjs` that exports the built Express app from `dist/src/index.js` so Vercel can load a real ESM entrypoint.
+   - Kept `apps/backend/server.ts` for local development while Vercel uses the `.mjs` wrapper.
    - Moved the API handler from `apps/backend/api/index.ts` into `apps/backend/src/index.ts` so the runtime path is consistent.
 2. Updated `apps/backend/package.json` to give an explicit main entry in the backend package:
-   - Set `"main": "server.ts"` so Vercel sees the intended file to use as an entrypoint.
+   - Set `"main": "server.mjs"` so Vercel sees the intended file to use as an entrypoint.
 3. Updated `vercel.json` for the backend to ensure requests route to the serverless function built from `src/index`:
    - Added / adjusted `rewrites` to route `/(.*)` → `/src/index` (so the Express app handles public routes).
 4. Made the monorepo root package explicit (module boundary):
@@ -35,8 +36,9 @@ Vercel reported that the deployed file was being loaded as CommonJS while the co
    - Added `.env` (from `.env.example`) locally for build-time env needs (not committed), and updated `.gitignore` to avoid committing secrets.
 
 ## Files changed (high-level)
-- `apps/backend/server.ts` (new) — wrapper exported default `app` for Vercel.
-- `apps/backend/package.json` — added `main` pointing to `server.ts`.
+- `apps/backend/server.mjs` (new) — ESM wrapper exported default `app` for Vercel.
+- `apps/backend/server.ts` (new) — local development wrapper exported default `app`.
+- `apps/backend/package.json` — added `main` pointing to `server.mjs`.
 - `apps/backend/vercel.json` — routing / rewrite configuration to map public paths to the built function.
 - `package.json` (repo root) — added `type: "module"` and `main` to make the package boundary explicit for Vercel.
 - `.gitignore` (apps/backend) — ensure `.env` and `dist/` are ignored.
@@ -79,13 +81,13 @@ vercel inspect <deployment-url-or-id> --logs
 ## Verification steps performed
 - Confirmed `dist/src/index.js` existed after `tsc`.
 - Confirmed `dist/server.js` imports `./src/index.js`.
-- Confirmed `vercel build` completed using `server.ts` as entrypoint.
+- Confirmed `vercel build` completed using `server.ts` as entrypoint during earlier iterations.
 - Confirmed successful `vercel --prod` deployment and that `/health` returned JSON (and no ESM loader errors in runtime logs).
 - Rechecked Vercel live logs for the deployment — earlier ESM import errors no longer present.
 
 ## Why this fixes the error
 - Vercel determines how to load Node functions by package boundaries and detected entrypoints. If the environment treats the code as CommonJS while your code uses ESM imports, Node will throw the "Cannot use import statement outside a module" error.
-- By making the backend entrypoint explicit (root `package.json` + backend `main` + `server.ts` wrapper) and ensuring the package is treated as ESM at the correct boundary, the runtime loads the files with the ESM loader and import statements succeed.
+- By making the backend entrypoint explicit and switching Vercel to a real `.mjs` wrapper, Node loads the deployed function as ESM instead of CommonJS.
 
 ## Notes & next steps (recommended)
 - Leave sensitive environment variables configured in Vercel project settings (do not commit `.env` to repo).
