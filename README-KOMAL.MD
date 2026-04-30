@@ -31,3 +31,4 @@ eyJhcGlfa2V5IjoieGtleXNpYi00ODkyYTA3ODcwZGM3MTA4MjgxMDNiZDIwYmU4ZTI4YzkyMWZjYzRm
 Restart backend port
   $port=3000; $repo='D:\komal\GitHub\autolab-monorepo'; $backend=Join-Path $repo 'apps\backend'; $pids=(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique); if($pids){$pids | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }}; Set-Location $backend; $env:DATABASE_URL='postgresql://postgres.kdbcukdrbwwsgntrsvdi:AutoLab%402024%23@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres?schema=autolab_api'; npm run dev
 ---------------------------------
+ok
