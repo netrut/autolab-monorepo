@@ -227,7 +227,7 @@ export default app;
  * This will start the Express server on PORT 5000
  */
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === `file://${process.argv[1]}`){
   const PORT = env.server.port || 5000;
   app.listen(PORT, () => {
     console.log('\n🚀 AutoLab Backend Server Started');

@@ -2,10 +2,13 @@
   "version": 2,
   "buildCommand": "npm run prisma:generate && npm run build",
   "outputDirectory": "dist",
-  "routes": [
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/api/index.js"
+      "source": "/(.*)",
+      "destination": "api/index"
     }
   ]
 }
