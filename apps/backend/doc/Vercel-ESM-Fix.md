@@ -20,7 +20,7 @@ Vercel reported that the deployed file was being loaded as CommonJS while the co
 ## Summary of actions taken (what I changed)
 1. Added a root-level wrapper entrypoint for Vercel to detect:
    - Added `apps/backend/server.mjs` that exports the built Express app from `dist/src/index.js` so Vercel can load a real ESM entrypoint.
-   - Kept `apps/backend/server.ts` for local development while Vercel uses the `.mjs` wrapper.
+   - Removed the backend root `server.ts` so Vercel stops preferring the CommonJS-style transpiled entry.
    - Moved the API handler from `apps/backend/api/index.ts` into `apps/backend/src/index.ts` so the runtime path is consistent.
 2. Updated `apps/backend/package.json` to give an explicit main entry in the backend package:
    - Set `"main": "server.mjs"` so Vercel sees the intended file to use as an entrypoint.
@@ -37,8 +37,8 @@ Vercel reported that the deployed file was being loaded as CommonJS while the co
 
 ## Files changed (high-level)
 - `apps/backend/server.mjs` (new) — ESM wrapper exported default `app` for Vercel.
-- `apps/backend/server.ts` (new) — local development wrapper exported default `app`.
 - `apps/backend/package.json` — added `main` pointing to `server.mjs`.
+- `apps/backend/tsconfig.json` — removed the root `server.ts` from the build include list.
 - `apps/backend/vercel.json` — routing / rewrite configuration to map public paths to the built function.
 - `package.json` (repo root) — added `type: "module"` and `main` to make the package boundary explicit for Vercel.
 - `.gitignore` (apps/backend) — ensure `.env` and `dist/` are ignored.
