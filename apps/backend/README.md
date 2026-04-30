@@ -367,3 +367,26 @@ For issues or questions:
 **Last Updated**: April 29, 2026
 **Version**: 1.0.0
 **Test Coverage**: 11/11 passing (100%)
+
+-----------------------------------------------------
+
+
+April 30, 2026
+Fixed: ESM loader error in Vercel logs
+What finally fixed it
+
+Switched the backend TypeScript build to CommonJS in tsconfig.json ("module": "CommonJS") and enabled "esModuleInterop": true so CJS dependencies (express/nodemailer/etc.) don’t break at runtime.
+Restored a standard Vercel function entry at index.ts and rewired Vercel routing in vercel.json to "/api/index".
+Removed ESM-only runtime code (import.meta.url) from index.ts.
+Reverted root ESM mode in package.json.
+
+Files changed below:-
+ M apps/backend/package.json
+ D apps/backend/server.mjs
+ M apps/backend/src/config/env.ts
+ M apps/backend/src/index.ts
+ M apps/backend/tsconfig.json
+ M apps/backend/vercel.json
+ M package.json
+?? apps/backend/api/
+---------------------------------------
