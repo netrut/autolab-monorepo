@@ -1,14 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npm run prisma:generate && npm run build",
-  "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production"
-  },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.js"
-    }
-  ]
+  }
 }
