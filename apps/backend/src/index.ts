@@ -104,12 +104,3 @@ app.use((err: any, req: any, res: any, next: any) => {
 });
 
 export default app;
-
-// Keep the file non-starting when imported by the Vercel runtime.
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const PORT = env.server.port || 5000;
-  app.listen(PORT, () => {
-    console.log('\n🚀 AutoLab Backend Server Started');
-    console.log(`📍 Running at http://localhost:${PORT}`);
-  });
-}
