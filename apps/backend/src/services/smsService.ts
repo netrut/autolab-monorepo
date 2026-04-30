@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 function normalizeIndianNumber(phoneNumber: string) {
 	const digits = phoneNumber.replace(/\D/g, '');

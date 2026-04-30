@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
-import { jwtService } from '../services/jwtService';
-import { emailService } from '../services/emailService';
-import { smsService } from '../services/smsService';
+import { jwtService } from '../services/jwtService.js';
+import { emailService } from '../services/emailService.js';
+import { smsService } from '../services/smsService.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();

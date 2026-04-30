@@ -1,6 +1,6 @@
 import axios from 'axios';
 import nodemailer from 'nodemailer';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',

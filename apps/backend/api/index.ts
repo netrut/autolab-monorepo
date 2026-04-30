@@ -18,14 +18,14 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { env } from '../src/config/env';
+import { env } from '../src/config/env.js';
 
 // Import all route modules
-import authRoutes from '../src/routes/auth.routes';
-import bookingsRoutes from '../src/routes/bookings.routes';
-import usersRoutes from '../src/routes/users.routes';
-import servicesRoutes from '../src/routes/services.routes';
-import vehiclesRoutes from '../src/routes/vehicles.routes';
+import authRoutes from '../src/routes/auth.routes.js';
+import bookingsRoutes from '../src/routes/bookings.routes.js';
+import usersRoutes from '../src/routes/users.routes.js';
+import servicesRoutes from '../src/routes/services.routes.js';
+import vehiclesRoutes from '../src/routes/vehicles.routes.js';
 
 // Initialize Express app
 const app: any = express();
