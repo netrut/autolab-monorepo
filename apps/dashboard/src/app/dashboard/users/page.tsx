@@ -5,13 +5,9 @@ import type { SearchParams } from 'nuqs/server';
 import { usersInfoContent } from '@/features/users/info-content';
 import { UserFormSheetTrigger } from '@/features/users/components/user-form-sheet';
 
-export const metadata = {
-  title: 'Dashboard: Users'
-};
+export const metadata = { title: 'Dashboard: Users' };
 
-type PageProps = {
-  searchParams: Promise<SearchParams>;
-};
+type PageProps = { searchParams: Promise<SearchParams> };
 
 export default async function UsersPage(props: PageProps) {
   const searchParams = await props.searchParams;
@@ -20,7 +16,7 @@ export default async function UsersPage(props: PageProps) {
   return (
     <PageContainer
       pageTitle='Users'
-      pageDescription='Manage users (React Query + nuqs table pattern.)'
+      pageDescription='Manage all users.'
       infoContent={usersInfoContent}
       pageHeaderAction={<UserFormSheetTrigger />}
     >

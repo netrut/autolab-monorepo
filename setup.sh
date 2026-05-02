@@ -11,6 +11,27 @@
 
 set -e
 
+################################################################################
+# Swap Memory Setup (8GB) — prevents OOM kills during Next.js compilation
+################################################################################
+
+setup_swap() {
+    echo "Setting up 8GB swap memory..."
+    if [ ! -f /tmp/swapfile ]; then
+        fallocate -l 8G /tmp/swapfile 2>/dev/null || dd if=/dev/zero of=/tmp/swapfile bs=1M count=8192 status=none
+        chmod 600 /tmp/swapfile
+        mkswap /tmp/swapfile
+    fi
+    if ! swapon --show | grep -q /tmp/swapfile; then
+        swapon /tmp/swapfile
+    fi
+    sysctl -w vm.swappiness=60 > /dev/null
+    sysctl -w vm.vfs_cache_pressure=50 > /dev/null
+    echo "Swap enabled: $(free -h | grep Swap)"
+}
+
+setup_swap
+
 # Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

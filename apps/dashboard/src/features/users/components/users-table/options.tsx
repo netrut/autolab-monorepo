@@ -1,8 +1,6 @@
 export const ROLE_OPTIONS = [
-  { value: 'Developer', label: 'Developer' },
-  { value: 'Designer', label: 'Designer' },
-  { value: 'Manager', label: 'Manager' },
-  { value: 'QA', label: 'QA' },
-  { value: 'DevOps', label: 'DevOps' },
-  { value: 'Product Owner', label: 'Product Owner' }
+  { value: '1', label: 'Admin' },
+  { value: '2', label: 'User' },
+  { value: '3', label: 'Mechanic' },
+  { value: '4', label: 'Manager' }
 ];

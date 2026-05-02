@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { env } from '../config/env.js';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -13,14 +13,14 @@ export interface AuthRequest extends Request {
 export const authMiddleware = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ 
-        error: 'Unauthorized: No token provided' 
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        error: "Unauthorized: No token provided",
       });
     }
 
@@ -35,8 +35,8 @@ export const authMiddleware = (
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ 
-      error: 'Unauthorized: Invalid token' 
+    return res.status(401).json({
+      error: "Unauthorized: Invalid token",
     });
   }
 };
@@ -46,12 +46,12 @@ export const authMiddleware = (
 export const optionalAuthMiddleware = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
       const decoded = jwt.verify(token, env.jwt.secret) as {
         userId: string;
@@ -64,7 +64,9 @@ export const optionalAuthMiddleware = (
     next();
   } catch (error) {
     // Invalid token, but continue anyway for optional auth endpoints
-    console.log('Optional auth: Invalid or missing token - allowing request without user context');
+    console.log(
+      "Optional auth: Invalid or missing token - allowing request without user context",
+    );
     next();
   }
 };
@@ -73,11 +75,11 @@ export const optionalAuthMiddleware = (
 export const adminMiddleware = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  if (req.user?.role !== 'ADMIN') {
-    return res.status(403).json({ 
-      error: 'Forbidden: Admin access required' 
+  if (req.user?.role !== "ADMIN") {
+    return res.status(403).json({
+      error: "Forbidden: Admin access required",
     });
   }
   next();

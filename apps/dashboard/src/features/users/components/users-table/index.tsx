@@ -24,7 +24,7 @@ export function UsersTable() {
     page: params.page,
     limit: params.perPage,
     ...(params.name && { search: params.name }),
-    ...(params.role && { roles: params.role }),
+    ...(params.role && { role: params.role }),
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
   };
 
@@ -45,7 +45,10 @@ export function UsersTable() {
 
   return (
     <DataTable table={table}>
-      <DataTableToolbar table={table} />
+      <DataTableToolbar
+        table={table}
+        filterParams={[{ paramKey: 'role', columnId: 'role_id' }]}
+      />
     </DataTable>
   );
 }

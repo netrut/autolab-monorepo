@@ -7,9 +7,10 @@
     "url": "https://github.com/Kiranism"
   },
   "scripts": {
-    "dev": "node scripts/postinstall.js 2>nul & next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3000",
+    "serve": "next build && next start -p 3000",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix && npm run format",
     "lint:strict": "oxlint --deny-warnings",

@@ -1,16 +1,20 @@
 export type Vehicle = {
-  id: string | number;
-  user_id?: string | number;
+  id: string;
+  user_id: string;
+  vehicle_type: string;
   brand: string;
   model: string;
-  year: number;
-  license_plate: string;
-  vin?: string;
-  color: string;
-  mileage?: number;
-  status: 'active' | 'inactive' | 'maintenance';
-  created_at?: string;
-  updated_at?: string;
+  year: number | null;
+  registration_number: string | null;
+  vehicle_color: string | null;
+  fuel_type: string | null;
+  transmission: string | null;
+  mileage_km: string | null;
+  notes: string | null;
+  is_active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+  users?: { id: string; email: string; display_name: string | null };
 };
 
 export type VehicleFilters = {
@@ -22,20 +26,24 @@ export type VehicleFilters = {
 };
 
 export type VehiclesResponse = {
-  success: boolean;
-  time: string;
-  message: string;
-  total_vehicles: number;
-  offset: number;
-  limit: number;
   vehicles: Vehicle[];
+  total_vehicles: number;
+  page: number;
+  limit: number;
+  offset: number;
 };
 
 export type VehicleMutationPayload = {
+  user_id: string;
+  vehicle_type: string;
   brand: string;
   model: string;
-  year: number;
-  license_plate: string;
-  color: string;
-  status: string;
+  year?: number;
+  registration_number?: string;
+  vehicle_color?: string;
+  fuel_type?: string;
+  transmission?: string;
+  mileage_km?: number;
+  notes?: string;
+  is_active?: boolean;
 };

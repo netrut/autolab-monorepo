@@ -6,22 +6,16 @@ import type { UserMutationPayload } from './types';
 
 export const createUserMutation = mutationOptions({
   mutationFn: (data: UserMutationPayload) => createUser(data),
-  onSuccess: () => {
-    getQueryClient().invalidateQueries({ queryKey: userKeys.all });
-  }
+  onSuccess: () => getQueryClient().invalidateQueries({ queryKey: userKeys.all })
 });
 
 export const updateUserMutation = mutationOptions({
-  mutationFn: ({ id, values }: { id: number; values: UserMutationPayload }) =>
+  mutationFn: ({ id, values }: { id: string; values: UserMutationPayload }) =>
     updateUser(id, values),
-  onSuccess: () => {
-    getQueryClient().invalidateQueries({ queryKey: userKeys.all });
-  }
+  onSuccess: () => getQueryClient().invalidateQueries({ queryKey: userKeys.all })
 });
 
 export const deleteUserMutation = mutationOptions({
-  mutationFn: (id: number) => deleteUser(id),
-  onSuccess: () => {
-    getQueryClient().invalidateQueries({ queryKey: userKeys.all });
-  }
+  mutationFn: (id: string) => deleteUser(id),
+  onSuccess: () => getQueryClient().invalidateQueries({ queryKey: userKeys.all })
 });

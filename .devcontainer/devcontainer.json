@@ -43,6 +43,7 @@
     }
   },
   "postCreateCommand": "bash setup.sh",
+  "postStartCommand": "bash .devcontainer/swap-setup.sh",
   "remoteUser": "node",
   "forwardPorts": [3000, 3001, 6379, 5432],
   "portsAttributes": {

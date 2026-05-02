@@ -1,87 +1,49 @@
-// ============================================================
-// User Service — Data Access Layer
-// ============================================================
-// Connected to AutoLab backend API
-// Fetches live user data from /api/users endpoint
-// ============================================================
-
-import { backendAPI } from '@/lib/api-client';
-import { fakeUsers } from '@/constants/mock-api-users';
 import type { UserFilters, UsersResponse, UserMutationPayload } from './types';
 
-// Fallback to mock data if backend fails
-async function getBackendUsers(filters: UserFilters): Promise<UsersResponse> {
-  const result = await backendAPI.users.list();
-  
-  if (!result.success || !result.data) {
-    console.warn('Backend API failed, falling back to mock data:', result.error);
-    return fakeUsers.getUsers(filters);
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3002';
+const SERVICE_TOKEN = process.env.BACKEND_SERVICE_TOKEN;
+
+// Server-side: call backend directly with service token
+async function fetchBackend<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (SERVICE_TOKEN) headers['Authorization'] = `Bearer ${SERVICE_TOKEN}`;
+  const res = await fetch(`${BACKEND_URL}${path}`, { ...options, headers: { ...headers, ...(options?.headers ?? {}) } });
+  if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
+  return res.json() as Promise<T>;
+}
+
+// Client-side: call Next.js BFF proxy (relative URL, no token needed)
+async function fetchProxy<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error ?? `API error: ${res.status} ${res.statusText}`);
   }
-
-  // Transform backend response to match expected format
-  const users = Array.isArray(result.data) ? result.data : [];
-  
-  // Apply filters
-  let filtered = users;
-  if (filters.search) {
-    filtered = filtered.filter(u => 
-      u.email?.includes(filters.search) || 
-      u.first_name?.includes(filters.search) ||
-      u.last_name?.includes(filters.search)
-    );
-  }
-
-  const total = filtered.length;
-  const offset = ((filters.page || 1) - 1) * (filters.limit || 10);
-  const paginated = filtered.slice(offset, offset + (filters.limit || 10));
-
-  return {
-    success: true,
-    time: new Date().toISOString(),
-    message: 'Users retrieved successfully',
-    total_users: total,
-    offset,
-    limit: filters.limit || 10,
-    users: paginated
-  };
+  return res.json() as Promise<T>;
 }
 
 export async function getUsers(filters: UserFilters): Promise<UsersResponse> {
-  return getBackendUsers(filters);
+  const params = new URLSearchParams();
+  if (filters.page) params.set('page', String(filters.page));
+  if (filters.limit) params.set('limit', String(filters.limit));
+  if (filters.search) params.set('search', filters.search);
+  if (filters.role) params.set('role', filters.role);
+  if (filters.sort) params.set('sort', filters.sort);
+  const qs = params.toString();
+  if (typeof window === 'undefined') {
+    return fetchBackend<UsersResponse>(`/api/users?${qs}`);
+  }
+  return fetchProxy<UsersResponse>(`/api/users?${qs}`);
 }
 
 export async function createUser(data: UserMutationPayload) {
-  try {
-    const result = await backendAPI.users.list();
-    if (result.success) {
-      return fakeUsers.createUser(data);
-    }
-  } catch (error) {
-    console.error('Error creating user:', error);
-  }
-  return fakeUsers.createUser(data);
+  return fetchProxy('/api/users', { method: 'POST', body: JSON.stringify(data) });
 }
 
-export async function updateUser(id: number, data: UserMutationPayload) {
-  try {
-    const result = await backendAPI.users.getById(String(id));
-    if (result.success) {
-      return fakeUsers.updateUser(id, data);
-    }
-  } catch (error) {
-    console.error('Error updating user:', error);
-  }
-  return fakeUsers.updateUser(id, data);
+export async function updateUser(id: string, data: UserMutationPayload) {
+  return fetchProxy(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 }
 
-export async function deleteUser(id: number) {
-  try {
-    const result = await backendAPI.users.list();
-    if (result.success) {
-      return fakeUsers.deleteUser(id);
-    }
-  } catch (error) {
-    console.error('Error deleting user:', error);
-  }
-  return fakeUsers.deleteUser(id);
+export async function deleteUser(id: string) {
+  return fetchProxy(`/api/users/${id}`, { method: 'DELETE' });
 }

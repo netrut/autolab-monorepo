@@ -1,15 +1,10 @@
 'use client';
-
 import { useState } from 'react';
-import { useAppForm, useFormFields } from '@/components/ui/tanstack-form';
+import { useAppForm } from '@/components/ui/tanstack-form';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle
+  Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle
 } from '@/components/ui/sheet';
 import { Icons } from '@/components/icons';
 import { useMutation } from '@tanstack/react-query';
@@ -17,13 +12,11 @@ import { createUserMutation, updateUserMutation } from '../api/mutations';
 import type { User } from '../api/types';
 import { toast } from 'sonner';
 import * as z from 'zod';
-import { userSchema, type UserFormValues } from '../schemas/user';
 import { ROLE_OPTIONS } from './users-table/options';
 
 const STATUS_OPTIONS = [
-  { value: 'Active', label: 'Active' },
-  { value: 'Inactive', label: 'Inactive' },
-  { value: 'Invited', label: 'Invited' }
+  { value: 'true', label: 'Active' },
+  { value: 'false', label: 'Inactive' }
 ];
 
 interface UserFormSheetProps {
@@ -34,48 +27,45 @@ interface UserFormSheetProps {
 
 export function UserFormSheet({ user, open, onOpenChange }: UserFormSheetProps) {
   const isEdit = !!user;
+  const [showPassword, setShowPassword] = useState(false);
 
   const createMutation = useMutation({
     ...createUserMutation,
-    onSuccess: () => {
-      toast.success('User created successfully');
-      onOpenChange(false);
-      form.reset();
-    },
-    onError: () => toast.error('Failed to create user')
+    onSuccess: () => { toast.success('User created successfully'); onOpenChange(false); },
+    onError: (e: any) => toast.error(e?.message ?? 'Failed to create user')
   });
 
   const updateMutation = useMutation({
     ...updateUserMutation,
-    onSuccess: () => {
-      toast.success('User updated successfully');
-      onOpenChange(false);
-    },
-    onError: () => toast.error('Failed to update user')
+    onSuccess: () => { toast.success('User updated successfully'); onOpenChange(false); },
+    onError: (e: any) => toast.error(e?.message ?? 'Failed to update user')
   });
 
   const form = useAppForm({
     defaultValues: {
-      first_name: user?.first_name ?? '',
-      last_name: user?.last_name ?? '',
+      display_name: user?.display_name ?? '',
       email: user?.email ?? '',
-      phone: user?.phone ?? '',
-      role: user?.role ?? '',
-      status: user?.status ?? 'Active'
-    } as UserFormValues,
-    validators: {
-      onSubmit: userSchema
+      phone_number: user?.phone_number ?? '',
+      role_id: String(user?.role_id ?? '2'),
+      is_active: String(user?.is_active ?? 'true'),
+      password: ''
     },
     onSubmit: async ({ value }) => {
+      const payload: any = {
+        display_name: value.display_name,
+        email: value.email,
+        phone_number: value.phone_number,
+        role_id: parseInt(value.role_id),
+        is_active: value.is_active === 'true'
+      };
+      if (value.password) payload.password = value.password;
       if (isEdit) {
-        await updateMutation.mutateAsync({ id: user.id, values: value });
+        await updateMutation.mutateAsync({ id: user.id, values: payload });
       } else {
-        await createMutation.mutateAsync(value);
+        await createMutation.mutateAsync(payload);
       }
     }
   });
-
-  const { FormTextField, FormSelectField } = useFormFields<UserFormValues>();
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
@@ -85,87 +75,71 @@ export function UserFormSheet({ user, open, onOpenChange }: UserFormSheetProps) 
         <SheetHeader>
           <SheetTitle>{isEdit ? 'Edit User' : 'New User'}</SheetTitle>
           <SheetDescription>
-            {isEdit
-              ? 'Update the user details below.'
-              : 'Fill in the details to create a new user.'}
+            {isEdit ? 'Update user details below.' : 'Fill in details to create a new user.'}
           </SheetDescription>
         </SheetHeader>
-
-        <div className='flex-1 overflow-auto'>
+        <div className='flex-1 overflow-auto px-1'>
           <form.AppForm>
             <form.Form id='user-form-sheet' className='space-y-4'>
-              <div className='grid grid-cols-2 gap-4'>
-                <FormTextField
-                  name='first_name'
-                  label='First Name'
-                  required
-                  placeholder='John'
-                  validators={{
-                    onBlur: z.string().min(2, 'First name must be at least 2 characters')
-                  }}
-                />
-                <FormTextField
-                  name='last_name'
-                  label='Last Name'
-                  required
-                  placeholder='Doe'
-                  validators={{
-                    onBlur: z.string().min(2, 'Last name must be at least 2 characters')
-                  }}
-                />
-              </div>
-
-              <FormTextField
-                name='email'
-                label='Email'
-                required
-                type='email'
-                placeholder='john@example.com'
-                validators={{
-                  onBlur: z.string().email('Please enter a valid email')
-                }}
-              />
-
-              <FormTextField
-                name='phone'
-                label='Phone'
-                required
-                type='tel'
-                placeholder='(555) 123-4567'
-                validators={{
-                  onBlur: z.string().min(1, 'Phone number is required')
-                }}
-              />
-
-              <FormSelectField
-                name='role'
-                label='Role'
-                required
-                options={ROLE_OPTIONS}
-                placeholder='Select role'
-                validators={{
-                  onBlur: z.string().min(1, 'Please select a role')
-                }}
-              />
-
-              <FormSelectField
-                name='status'
-                label='Status'
-                required
-                options={STATUS_OPTIONS}
-                placeholder='Select status'
-                validators={{
-                  onBlur: z.string().min(1, 'Please select a status')
-                }}
-              />
+              <form.AppField name='display_name'
+                validators={{ onBlur: z.string().min(2, 'Name must be at least 2 characters') }}>
+                {(field) => <field.TextField label='Display Name' required placeholder='John Doe' />}
+              </form.AppField>
+              <form.AppField name='email'
+                validators={{ onBlur: z.string().email('Please enter a valid email') }}>
+                {(field) => <field.TextField label='Email' required type='email' placeholder='john@example.com' />}
+              </form.AppField>
+              <form.AppField name='phone_number'>
+                {(field) => <field.TextField label='Phone' type='tel' placeholder='+91 9876543210' />}
+              </form.AppField>
+              <form.AppField
+                name='password'
+                validators={!isEdit ? { onBlur: z.string().min(6, 'Password must be at least 6 characters') } : undefined}
+              >
+                {(field) => (
+                  <field.FieldSet>
+                    <field.Field>
+                      <field.FieldLabel htmlFor={field.name}>
+                        {isEdit ? 'New Password' : 'Password'}{!isEdit && <span className='text-destructive ml-1'>*</span>}
+                      </field.FieldLabel>
+                      <div className='relative'>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          type={showPassword ? 'text' : 'password'}
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder={isEdit ? 'Leave blank to keep current' : 'Min. 6 characters'}
+                          className='pr-10'
+                        />
+                        <button
+                          type='button'
+                          onClick={() => setShowPassword((v) => !v)}
+                          className='text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2'
+                          tabIndex={-1}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <Icons.eye className='h-4 w-4' /> : <Icons.eyeOff className='h-4 w-4' />}
+                        </button>
+                      </div>
+                    </field.Field>
+                    <field.FieldError />
+                  </field.FieldSet>
+                )}
+              </form.AppField>
+              <form.AppField name='role_id'
+                validators={{ onBlur: z.string().min(1, 'Please select a role') }}>
+                {(field) => <field.SelectField label='Role' required options={ROLE_OPTIONS} placeholder='Select role' />}
+              </form.AppField>
+              <form.AppField name='is_active'>
+                {(field) => <field.SelectField label='Status' required options={STATUS_OPTIONS} placeholder='Select status' />}
+              </form.AppField>
             </form.Form>
           </form.AppForm>
         </div>
-
         <SheetFooter>
-          <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
+          <Button variant='outline' onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button type='submit' form='user-form-sheet' isLoading={isPending}>
             <Icons.check /> {isEdit ? 'Update User' : 'Create User'}
           </Button>
@@ -177,7 +151,6 @@ export function UserFormSheet({ user, open, onOpenChange }: UserFormSheetProps) 
 
 export function UserFormSheetTrigger() {
   const [open, setOpen] = useState(false);
-
   return (
     <>
       <Button onClick={() => setOpen(true)}>

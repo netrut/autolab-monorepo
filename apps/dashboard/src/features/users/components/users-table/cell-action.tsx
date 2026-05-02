@@ -30,9 +30,7 @@ export function CellAction({ data }: CellActionProps) {
       toast.success('User deleted successfully');
       setDeleteOpen(false);
     },
-    onError: () => {
-      toast.error('Failed to delete user');
-    }
+    onError: () => toast.error('Failed to delete user')
   });
 
   return (

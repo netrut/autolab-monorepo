@@ -26,26 +26,38 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   title?: string;
   options: Option[];
   multiple?: boolean;
+  /** URL-driven value (single value string) */
+  urlValue?: string;
+  /** URL-driven onChange */
+  onUrlChange?: (value: string) => void;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
   options,
-  multiple
+  multiple,
+  urlValue,
+  onUrlChange
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const [open, setOpen] = React.useState(false);
 
+  const isUrlDriven = onUrlChange !== undefined;
+
   const columnFilterValue = column?.getFilterValue();
-  const selectedValues = React.useMemo(
-    () => new Set(Array.isArray(columnFilterValue) ? columnFilterValue : []),
-    [columnFilterValue]
-  );
+  const selectedValues = React.useMemo(() => {
+    if (isUrlDriven) return new Set(urlValue ? [urlValue] : []);
+    return new Set(Array.isArray(columnFilterValue) ? columnFilterValue : []);
+  }, [isUrlDriven, urlValue, columnFilterValue]);
 
   const onItemSelect = React.useCallback(
     (option: Option, isSelected: boolean) => {
+      if (isUrlDriven) {
+        onUrlChange(isSelected ? '' : option.value);
+        setOpen(false);
+        return;
+      }
       if (!column) return;
-
       if (multiple) {
         const newSelectedValues = new Set(selectedValues);
         if (isSelected) {
@@ -60,15 +72,16 @@ export function DataTableFacetedFilter<TData, TValue>({
         setOpen(false);
       }
     },
-    [column, multiple, selectedValues]
+    [column, multiple, selectedValues, isUrlDriven, onUrlChange]
   );
 
   const onReset = React.useCallback(
     (event?: React.MouseEvent) => {
       event?.stopPropagation();
+      if (isUrlDriven) { onUrlChange(''); return; }
       column?.setFilterValue(undefined);
     },
-    [column]
+    [column, isUrlDriven, onUrlChange]
   );
 
   return (
