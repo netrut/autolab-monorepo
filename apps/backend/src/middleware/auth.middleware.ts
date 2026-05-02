@@ -41,6 +41,34 @@ export const authMiddleware = (
   }
 };
 
+// Optional auth middleware - allows requests without token (e.g., for dev/public endpoints)
+// If token is present and valid, it will be extracted; otherwise, the request proceeds without user context
+export const optionalAuthMiddleware = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, env.jwt.secret) as {
+        userId: string;
+        email: string;
+        role: string;
+      };
+      req.user = decoded;
+    }
+    // If no token or invalid, continue without user - caller must handle null user
+    next();
+  } catch (error) {
+    // Invalid token, but continue anyway for optional auth endpoints
+    console.log('Optional auth: Invalid or missing token - allowing request without user context');
+    next();
+  }
+};
+
 // Admin-only middleware
 export const adminMiddleware = (
   req: AuthRequest,

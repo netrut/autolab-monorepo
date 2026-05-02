@@ -77,28 +77,30 @@ export function VehiclesTable() {
                     <td className="py-3 px-4">
                       {vehicle.brand} {vehicle.model}
                     </td>
-                    <td className="py-3 px-4 font-mono text-sm">{vehicle.license_plate}</td>
-                    <td className="py-3 px-4">{vehicle.year}</td>
+                    <td className="py-3 px-4 font-mono text-sm">{vehicle.registration_number || vehicle.license_plate || 'N/A'}</td>
+                    <td className="py-3 px-4">{vehicle.year || 'N/A'}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-4 h-4 rounded border"
-                          style={{ backgroundColor: vehicle.color.toLowerCase() }}
-                        />
-                        {vehicle.color}
+                        {vehicle.vehicle_color && (
+                          <div
+                            className="w-4 h-4 rounded border"
+                            style={{ backgroundColor: vehicle.vehicle_color.toLowerCase() }}
+                          />
+                        )}
+                        {vehicle.vehicle_color || vehicle.color || 'N/A'}
                       </div>
                     </td>
                     <td className="py-3 px-4">
                       <Badge
                         variant={
-                          vehicle.status === 'active'
+                          (vehicle.status || (vehicle.is_active ? 'active' : 'inactive')) === 'active'
                             ? 'default'
-                            : vehicle.status === 'maintenance'
+                            : (vehicle.status || (vehicle.is_active ? 'active' : 'inactive')) === 'maintenance'
                               ? 'secondary'
                               : 'outline'
                         }
                       >
-                        {vehicle.status}
+                        {vehicle.status || (vehicle.is_active ? 'active' : 'inactive')}
                       </Badge>
                     </td>
                   </tr>

@@ -11,6 +11,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
+import { PrismaClient } from '@prisma/client';
 
 // Import all route modules
 import authRoutes from './routes/auth.routes.js';
@@ -22,6 +23,22 @@ import vehiclesRoutes from './routes/vehicles.routes.js';
 // Initialize Express app
 const app: any = express();
 
+// Initialize Prisma (database)
+const prisma = new PrismaClient();
+
+(async function initDb() {
+  try {
+    await prisma.$connect();
+    console.log('Database connected');
+  } catch (err) {
+    console.error('Failed to connect to database:', err);
+    if (env.server.nodeEnv === 'production') {
+      // In production we want to fail fast if DB is unavailable
+      process.exit(1);
+    }
+  }
+})();
+
 // Security headers
 app.use(helmet());
 
@@ -30,13 +47,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // CORS configuration
+// Build allowed origins list (include optional dashboard env vars)
+const allowedOrigins = [
+  env.cors.adminDashboard,
+  env.cors.production,
+  process.env.DASHBOARD_URL,
+  process.env.NEXT_PUBLIC_DASHBOARD_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: [
-    env.cors.adminDashboard,
-    env.cors.production,
-    'http://localhost:3000',
-    'http://localhost:3001',
-  ],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -102,5 +124,18 @@ app.use((err: any, req: any, res: any, next: any) => {
   const message = err.message || 'Internal server error';
   res.status(statusCode).json({ error: err.name || 'Error', message, ...(env.server.nodeEnv === 'development' && { stack: err.stack }), timestamp: new Date().toISOString() });
 });
+
+// Graceful shutdown: disconnect Prisma
+async function shutdown() {
+  try {
+    await prisma.$disconnect();
+    console.log('Database disconnected');
+  } catch (err) {
+    console.error('Error during disconnection:', err);
+  }
+}
+
+process.on('SIGINT', () => void shutdown().then(() => process.exit(0)));
+process.on('SIGTERM', () => void shutdown().then(() => process.exit(0)));
 
 export default app;

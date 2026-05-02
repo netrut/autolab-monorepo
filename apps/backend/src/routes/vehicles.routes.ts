@@ -1,10 +1,10 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/auth.middleware.js';
+import { optionalAuthMiddleware } from '../middleware/auth.middleware.js';
 import { vehicleController } from '../controllers/vehicleController.js';
 
 const router: express.Router = express.Router();
 
-router.use(authMiddleware);
+router.use(optionalAuthMiddleware);
 
 router.get('/', vehicleController.list);
 router.get('/:id', vehicleController.getById);
