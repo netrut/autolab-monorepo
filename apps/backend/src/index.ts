@@ -56,6 +56,7 @@ const allowedOrigins = [
   process.env.NEXT_PUBLIC_DASHBOARD_URL,
   "http://localhost:3000",
   "http://localhost:3001",
+  "https://autolab-dashboard.vercel.app",
 ].filter(Boolean) as string[];
 
 app.use(
@@ -131,14 +132,12 @@ app.use((err: any, req: any, res: any, next: any) => {
   });
   const statusCode = err.statusCode || err.status || 500;
   const message = err.message || "Internal server error";
-  res
-    .status(statusCode)
-    .json({
-      error: err.name || "Error",
-      message,
-      ...(env.server.nodeEnv === "development" && { stack: err.stack }),
-      timestamp: new Date().toISOString(),
-    });
+  res.status(statusCode).json({
+    error: err.name || "Error",
+    message,
+    ...(env.server.nodeEnv === "development" && { stack: err.stack }),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Graceful shutdown: disconnect Prisma
