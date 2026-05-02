@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: autolab_postgres
+    environment:
+      POSTGRES_USER: autolab
+      POSTGRES_PASSWORD: autolab123
+      POSTGRES_DB: autolab_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autolab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autolab_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: autolab_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - autolab_network
+
+  # Mailhog - Local Email Testing (Optional)
+  mailhog:
+    image: mailhog/mailhog
+    container_name: autolab_mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - autolab_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  autolab_network:
+    driver: bridge

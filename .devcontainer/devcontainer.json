@@ -1,0 +1,66 @@
+{
+  "name": "AutoLab Monorepo",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "MS-CEINTL.vscode-language-pack-de",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "Prisma.prisma",
+        "GitHub.copilot",
+        "github.vscode-pull-request-github",
+        "ms-vscode.theme-passionfruitadaptive",
+        "ms-vscode.makefile-tools",
+        "mquandalle.graphql",
+        "ms-vscode-remote.remote-ssh",
+        "mutantdino.resourcemonitor",
+        "usernamehw.errorlens",
+        "wix.vscode-import-cost",
+        "eamodio.gitlens",
+        "wayou.vscode-todo-highlight"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.fontFamily": "'Fira Code', Consolas, 'Courier New', monospace",
+        "editor.fontSize": 13,
+        "editor.wordWrap": "on",
+        "terminal.integrated.fontSize": 12,
+        "files.exclude": {
+          "**/.git": true,
+          "**/.next": true,
+          "**/node_modules": true,
+          "**/.vscode": false
+        }
+      }
+    }
+  },
+  "postCreateCommand": "bash setup.sh",
+  "remoteUser": "node",
+  "forwardPorts": [3000, 3001, 6379, 5432],
+  "portsAttributes": {
+    "3000": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Dashboard",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    }
+  }
+}
