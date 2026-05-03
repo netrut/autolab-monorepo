@@ -1,0 +1,473 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/vehicle_provider.dart';
+import '../../../shared/widgets/bottom_nav_bar.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<VehicleProvider>().fetchVehicles();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final vehicles = context.watch<VehicleProvider>();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F3F3),
+      drawer: _buildDrawer(context, auth),
+      appBar: AppBar(
+        title: const Text('AUTOLAB'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 6, 12, 6),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1F1F1F),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.notifications_none_rounded,
+                  color: Colors.white, size: 22),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(10, 6, 10, 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting
+              Padding(
+                padding: const EdgeInsets.fromLTRB(2, 2, 2, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hello, ${auth.user?.displayName ?? 'Dear'}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          fontStyle: FontStyle.italic,
+                          color: const Color(0xFF1E1E1E)),
+                    ),
+                    Text('Your Automotive Service Hub',
+                        style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF7A7A7A))),
+                  ],
+                ),
+              ),
+
+              // Hero banner
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFEFEF),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFDCDCDC)),
+                ),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your one stop solution for all\nyour automotive needs',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF232323)),
+                    ),
+                    const SizedBox(height: 12),
+                    // Vehicles row
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE9E9E9),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          ...vehicles.vehicles.take(2).map((v) => Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4),
+                                  child: Container(
+                                    height: 38,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        v.displayName,
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => context.push('/vehicles/add'),
+                              child: Container(
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF4F4F4),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: const Color(0xFFD4D4D4)),
+                                ),
+                                child: Center(
+                                  child: Text('+ Add Vehicle',
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF2A2A2A))),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+              Text('SERVICE & MAINTENANCE',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF616161),
+                      letterSpacing: 1.0)),
+              const SizedBox(height: 8),
+
+              // Service summary cards
+              Row(
+                children: [
+                  Expanded(
+                    child: _ServiceCard(
+                      icon: Icons.handyman_outlined,
+                      title: 'My Bookings',
+                      subtitle: 'View all bookings',
+                      onTap: () => context.push('/bookings'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ServiceCard(
+                      icon: Icons.store_outlined,
+                      title: 'Service Centers',
+                      subtitle: 'Find near you',
+                      onTap: () => context.push('/service-centers'),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+              Text('Add New Vehicle',
+                  style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF202020))),
+              const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _VehicleTypeCard(
+                      imagePath: 'assets/images/four-wheeler.png',
+                      title: '+ Add Four-Wheeler',
+                      subtitle: 'Car, SUV',
+                      onTap: () => context.push('/vehicles/add'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _VehicleTypeCard(
+                      imagePath: 'assets/images/two-wheeler.png',
+                      title: '+ Add Two-Wheeler',
+                      subtitle: 'Bike, Scooter',
+                      onTap: () => context.push('/vehicles/add'),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+              Text('Contact Us',
+                  style: GoogleFonts.poppins(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF202020))),
+              const SizedBox(height: 8),
+              _ContactCard(onTap: () async {
+                await launchUrl(Uri.parse('https://wa.me/919664027924'),
+                    mode: LaunchMode.externalApplication);
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context, AuthProvider auth) {
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('AUTOLAB',
+                  style: GoogleFonts.poppins(
+                      fontSize: 22, fontWeight: FontWeight.w700)),
+            ),
+            const Divider(),
+            _drawerItem(Icons.home_outlined, 'Home',
+                () => context.go('/home')),
+            _drawerItem(Icons.directions_car_outlined, 'My Vehicles',
+                () => context.push('/vehicles')),
+            _drawerItem(Icons.calendar_today_outlined, 'Bookings',
+                () => context.push('/bookings')),
+            _drawerItem(Icons.store_outlined, 'Service Centers',
+                () => context.push('/service-centers')),
+            _drawerItem(Icons.person_outline, 'Profile',
+                () => context.push('/profile')),
+            const Spacer(),
+            const Divider(),
+            _drawerItem(Icons.logout, 'Logout', () async {
+              await auth.logout();
+            }, color: Colors.red),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String label, VoidCallback onTap,
+      {Color? color}) {
+    return ListTile(
+      leading: Icon(icon, color: color ?? Colors.black),
+      title: Text(label,
+          style: GoogleFonts.poppins(
+              fontSize: 15, color: color ?? Colors.black)),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
+    );
+  }
+}
+
+class _ServiceCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ServiceCard(
+      {required this.icon,
+      required this.title,
+      required this.subtitle,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x0F000000), blurRadius: 18, offset: Offset(0, 6))
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFF1F1F1F), size: 24),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis),
+                  Text(subtitle,
+                      style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: const Color(0xFF7A7A7A),
+                          fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VehicleTypeCard extends StatelessWidget {
+  final String imagePath;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _VehicleTypeCard(
+      {required this.imagePath,
+      required this.title,
+      required this.subtitle,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x0E000000), blurRadius: 16, offset: Offset(0, 6))
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+        child: Column(
+          children: [
+            // Fallback icon if image not found
+            SizedBox(
+              height: 72,
+              child: Image.asset(imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                      Icons.directions_car,
+                      size: 48,
+                      color: Color(0xFF1F1F1F))),
+            ),
+            const SizedBox(height: 12),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w500),
+                overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 4),
+            Text(subtitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: const Color(0xFF808080))),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ContactCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEAEAEA)),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x0E000000), blurRadius: 16, offset: Offset(0, 6))
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            flex: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "We're here to assist you.\nPlease contact us, and our\nrepresentative would be happy\nto assist you.",
+                  style: GoogleFonts.poppins(
+                      fontSize: 13, color: const Color(0xFF303030)),
+                ),
+                const SizedBox(height: 14),
+                ElevatedButton(
+                  onPressed: onTap,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1B1F26),
+                    minimumSize: const Size(0, 32),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: Text('Call Now',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 5,
+            child: Image.asset('assets/images/contact-us.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.support_agent, size: 60)),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -45,7 +45,7 @@
   "postCreateCommand": "bash setup.sh",
   "postStartCommand": "bash .devcontainer/swap-setup.sh",
   "remoteUser": "node",
-  "forwardPorts": [3000, 3001, 6379, 5432],
+  "forwardPorts": [3000, 3001, 6379, 5432, 8080],
   "portsAttributes": {
     "3000": {
       "label": "Backend API",
@@ -62,6 +62,10 @@
     "6379": {
       "label": "Redis",
       "onAutoForward": "silent"
+    },
+    "8080": {
+      "label": "Flutter Web App",
+      "onAutoForward": "notify"
     }
   }
 }

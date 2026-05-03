@@ -206,6 +206,62 @@ install_dependencies() {
 }
 
 ################################################################################
+# Flutter Setup
+################################################################################
+
+setup_flutter() {
+    print_header "Setting Up Flutter SDK"
+
+    FLUTTER_DIR="/home/node/flutter-sdk/flutter"
+
+    if [ -f "$FLUTTER_DIR/bin/flutter" ]; then
+        print_info "Flutter SDK already installed at $FLUTTER_DIR"
+    else
+        print_step "Downloading Flutter SDK 3.24.5..."
+        mkdir -p /home/node/flutter-sdk
+        curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.24.5-stable.tar.xz \
+            -o /home/node/flutter-sdk/flutter.tar.xz
+        tar xf /home/node/flutter-sdk/flutter.tar.xz -C /home/node/flutter-sdk/
+        rm /home/node/flutter-sdk/flutter.tar.xz
+        print_success "Flutter SDK installed"
+    fi
+
+    # Add to PATH in .bashrc if not already there
+    if ! grep -q "flutter-sdk" /home/node/.bashrc; then
+        echo 'export PATH="$PATH:/home/node/flutter-sdk/flutter/bin"' >> /home/node/.bashrc
+        echo 'export CHROME_EXECUTABLE=/usr/bin/chromium' >> /home/node/.bashrc
+    fi
+    export PATH="$PATH:$FLUTTER_DIR/bin"
+    export CHROME_EXECUTABLE=/usr/bin/chromium
+
+    # Install Chromium for web dev
+    if ! command -v chromium &>/dev/null; then
+        print_step "Installing Chromium for Flutter web..."
+        sudo apt-get install -y chromium -qq
+        print_success "Chromium installed"
+    else
+        print_info "Chromium already installed"
+    fi
+
+    # Enable web
+    flutter config --no-analytics --enable-web > /dev/null 2>&1
+
+    # Install flutter app dependencies
+    print_step "Installing Flutter app dependencies..."
+    cd "$PROJECT_DIR/apps/flutter-app"
+    flutter pub get
+    print_success "Flutter dependencies installed"
+
+    # Copy .env.example to .env if not exists
+    if [ ! -f .env ] && [ -f .env.example ]; then
+        cp .env.example .env
+        print_success "Created flutter-app .env from template"
+    fi
+
+    cd "$PROJECT_DIR"
+}
+
+################################################################################
 # Environment Setup
 ################################################################################
 
@@ -388,10 +444,11 @@ print_quick_start() {
     echo "   cd apps/dashboard"
     echo "   npm run dev"
     echo ""
-    echo "   # Terminal 3 - Flutter App (if available)"
+    echo "   # Terminal 3 - Flutter App (web on port 8080)"
     echo "   cd apps/flutter-app"
-    echo "   flutter pub get"
-    echo "   flutter run"
+    echo "   bash run.sh          # Chrome web (port 8080)"
+    echo "   bash run.sh android  # Android device"
+    echo "   bash run.sh build    # Build release APK"
     echo ""
     echo -e "${BLUE}Useful Commands:${NC}"
     echo "   npm run backend:dev       # Start backend development server"
@@ -458,6 +515,7 @@ main() {
     check_system_requirements
     setup_project
     install_dependencies
+    setup_flutter
     setup_environment
     setup_prisma
     verify_setup
