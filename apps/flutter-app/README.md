@@ -39,6 +39,7 @@ lib/
 ## 🚀 Getting Started
 
 ### 1. Install dependencies
+
 ```bash
 flutter pub get
 ```
@@ -46,6 +47,7 @@ flutter pub get
 ### 2. Configure API URL
 
 Edit `lib/core/api/api_client.dart`:
+
 ```dart
 // For Android emulator → localhost
 defaultValue: 'http://10.0.2.2:3000'
@@ -58,11 +60,13 @@ defaultValue: 'https://your-api.vercel.app'
 ```
 
 Or pass at build time:
+
 ```bash
-flutter run --dart-define=API_URL=https://your-api.vercel.app
+flutter run --dart-define=API_URL=https://autolab-api.vercel.app
 ```
 
 ### 3. Run the app
+
 ```bash
 # Start backend first
 cd ../backend && npm run dev
@@ -73,29 +77,29 @@ flutter run
 
 ## 🔌 API Endpoints Used
 
-| Feature | Endpoint |
-|---------|----------|
-| Login | `POST /api/auth/login` |
-| Register | `POST /api/auth/register` |
-| Send OTP | `POST /api/auth/send-otp` |
-| Verify OTP | `POST /api/auth/verify-otp` |
-| Forgot Password | `POST /api/auth/forgot-password` |
-| Profile | `GET /api/users/profile` |
-| Vehicles | `GET/POST/PUT/DELETE /api/vehicles` |
-| Bookings | `GET/POST/DELETE /api/bookings` |
-| Service Centers | `GET /api/service-centers` |
+| Feature         | Endpoint                            |
+| --------------- | ----------------------------------- |
+| Login           | `POST /api/auth/login`              |
+| Register        | `POST /api/auth/register`           |
+| Send OTP        | `POST /api/auth/send-otp`           |
+| Verify OTP      | `POST /api/auth/verify-otp`         |
+| Forgot Password | `POST /api/auth/forgot-password`    |
+| Profile         | `GET /api/users/profile`            |
+| Vehicles        | `GET/POST/PUT/DELETE /api/vehicles` |
+| Bookings        | `GET/POST/DELETE /api/bookings`     |
+| Service Centers | `GET /api/service-centers`          |
 
 ## 📦 Key Dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `dio` | HTTP client |
-| `provider` | State management |
-| `go_router` | Navigation |
-| `shared_preferences` | JWT token storage |
-| `google_fonts` | Poppins / Inter Tight fonts |
-| `intl` | Date formatting |
-| `url_launcher` | Phone calls / WhatsApp |
+| Package              | Purpose                     |
+| -------------------- | --------------------------- |
+| `dio`                | HTTP client                 |
+| `provider`           | State management            |
+| `go_router`          | Navigation                  |
+| `shared_preferences` | JWT token storage           |
+| `google_fonts`       | Poppins / Inter Tight fonts |
+| `intl`               | Date formatting             |
+| `url_launcher`       | Phone calls / WhatsApp      |
 
 ## 🔐 Auth Flow
 
@@ -111,6 +115,7 @@ App Start
 ## 🎨 Design System
 
 Colors from old app preserved:
+
 - Primary: `#1B1F26` (near-black)
 - Background: `#F3F3F3`
 - Surface: `#FFFFFF`
@@ -118,3 +123,26 @@ Colors from old app preserved:
 - Success: `#249689`
 
 Fonts: Poppins (body) + Inter Tight (headings)
+
+# run app
+
+cd apps/flutter-app
+
+# Run on web (open port 8080 in browser / Ports tab)
+
+bash run.sh
+
+# Build debug APK for Android testing
+
+bash run.sh build-debug
+
+# Build release APK
+
+bash run.sh build
+
+## GitHub commit/push to deploye on verce
+
+cd /workspaces/autolab-monorepo/apps/flutter-app
+git add -f build/web
+git commit -m "Add Flutter web build for Vercel deployment"
+git push
