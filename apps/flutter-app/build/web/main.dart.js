@@ -42017,7 +42017,7 @@ $2(a,b){var s=this.a.Fb()
 if(s!=null)s.h8(a,b)},
 $S:70}
 A.a1B.prototype={
-a6m(){var s,r=A.aRM("https://autolab-app.vercel.app/",B.p1,A.aH(["Content-Type","application/json"],t.N,t.z),B.p1),q=new A.NB(A.b([B.F9],t.i6))
+a6m(){var s,r=A.aRM("https://autolab-api.vercel.app",B.p1,A.aH(["Content-Type","application/json"],t.N,t.z),B.p1),q=new A.NB(A.b([B.F9],t.i6))
 q.O(q,B.Ne)
 s=new A.a4R($,q,$,new A.a8j(51200),!1)
 s.lQ$=r
