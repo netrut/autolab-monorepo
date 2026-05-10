@@ -33,7 +33,18 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF3F3F3),
       drawer: _buildDrawer(context, auth),
       appBar: AppBar(
-        title: const Text('AUTOLAB'),
+        backgroundColor: const Color(0xFFF3F3F3),
+        iconTheme: const IconThemeData(color: Color(0xFF3E3E3E)),
+        centerTitle: true,
+        elevation: 0,
+        title: Text(
+          'AUTOLAB',
+          style: GoogleFonts.interTight(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF232323),
+              letterSpacing: 1.0),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 6, 12, 6),
@@ -99,7 +110,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF232323)),
                     ),
-                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Image.asset(
+                        'assets/images/header-car.png',
+                        height: 106,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox(height: 106),
+                      ),
+                    ),
                     // Vehicles row
                     Container(
                       decoration: BoxDecoration(
@@ -109,29 +128,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(8),
                       child: Row(
                         children: [
-                          ...vehicles.vehicles.take(2).map((v) => Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 4),
-                                  child: Container(
-                                    height: 38,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        v.displayName,
-                                        style: GoogleFonts.poppins(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500),
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  'assets/images/four-wheeler.png',
+                                  height: 38,
+                                  fit: BoxFit.contain,
                                 ),
-                              )),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  'assets/images/carApp2.png',
+                                  height: 38,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: GestureDetector(
                               onTap: () => context.push('/vehicles/add'),
@@ -175,6 +199,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: _ServiceCard(
                       icon: Icons.handyman_outlined,
+                      title: 'Due Services',
+                      subtitle: '3 Services Pending',
+                      onTap: () => context.push('/bookings'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _ServiceCard(
+                      icon: Icons.calendar_month_outlined,
+                      title: 'Next Service',
+                      subtitle: '14 Mar 2026',
+                      onTap: () => context.push('/bookings'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ServiceCard(
+                      icon: Icons.receipt_long_outlined,
                       title: 'My Bookings',
                       subtitle: 'View all bookings',
                       onTap: () => context.push('/bookings'),
@@ -190,6 +236,107 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 20),
+              Text('Service Update',
+                  style: GoogleFonts.poppins(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF202020))),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F3F5),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFE3E3E3)),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Color(0x12000000),
+                        blurRadius: 16,
+                        offset: Offset(0, 5))
+                  ],
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Service Update',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF232323))),
+                          const SizedBox(height: 10),
+                          Text('•  Parts Replaced',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF3B3B3B))),
+                          const SizedBox(height: 4),
+                          Text('•  Oil Changed',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF3B3B3B))),
+                          const SizedBox(height: 4),
+                          Text('•  Next Due Updated',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF3B3B3B))),
+                          const SizedBox(height: 4),
+                          Text('•  Customer Notified',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF3B3B3B))),
+                          const SizedBox(height: 14),
+                          ElevatedButton(
+                            onPressed: () => context.push('/bookings'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1B1F26),
+                              minimumSize: const Size(0, 36),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: Text('Update Service',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 5,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: SizedBox(
+                          height: 210,
+                          child: Image.asset(
+                            'assets/images/service_update_img.png',
+                            fit: BoxFit.contain,
+                            alignment: Alignment.centerRight,
+                            errorBuilder: (_, __, ___) => const Icon(
+                                Icons.build_circle_outlined,
+                                size: 80,
+                                color: Color(0xFFAAAAAA)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 20),

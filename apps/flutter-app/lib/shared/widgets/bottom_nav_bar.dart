@@ -17,7 +17,7 @@ class AppBottomNavBar extends StatelessWidget {
         icon: Icons.calendar_today_outlined,
         label: 'Bookings',
         route: '/bookings'),
-    _NavItem(icon: Icons.person_outline, label: 'Profile', route: '/profile'),
+    _NavItem(icon: Icons.build_outlined, label: 'Services', route: '/services'),
   ];
 
   @override

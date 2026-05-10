@@ -12,7 +12,10 @@ import '../../features/vehicles/screens/add_vehicle_screen.dart';
 import '../../features/bookings/screens/bookings_screen.dart';
 import '../../features/bookings/screens/create_booking_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
-import '../../features/service_centers/screens/service_centers_screen.dart';
+import '../../features/service/screens/service_screen.dart';
+import '../../features/service/screens/service_form_screen.dart';
+import '../../features/service/screens/service_history_screen.dart';
+import '../../features/service/screens/service_detail_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -76,10 +79,33 @@ GoRouter createRouter(AuthProvider authProvider) {
           ),
         ],
       ),
+
+      // ── Service routes ───────────────────────────────────────────────────
       GoRoute(
-        path: '/service-centers',
-        builder: (_, __) => const ServiceCentersScreen(),
+        path: '/services',
+        builder: (_, __) => const ServiceScreen(),
       ),
+      GoRoute(
+        path: '/service/form/:vehicleId',
+        builder: (_, state) {
+          final vehicleId = state.pathParameters['vehicleId']!;
+          final serviceId = state.uri.queryParameters['serviceId'];
+          return ServiceFormScreen(vehicleId: vehicleId, serviceId: serviceId);
+        },
+      ),
+      GoRoute(
+        path: '/service/history/:vehicleId',
+        builder: (_, state) => ServiceHistoryScreen(
+          vehicleId: state.pathParameters['vehicleId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/service/detail/:serviceId',
+        builder: (_, state) => ServiceDetailScreen(
+          serviceId: state.pathParameters['serviceId']!,
+        ),
+      ),
+
       GoRoute(
         path: '/profile',
         builder: (_, __) => const ProfileScreen(),

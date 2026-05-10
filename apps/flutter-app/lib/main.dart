@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/vehicle_provider.dart';
 import 'core/providers/booking_provider.dart';
+import 'core/providers/vehicle_service_provider.dart';
 import 'core/utils/router.dart';
 import 'shared/theme/app_theme.dart';
 
@@ -23,6 +24,7 @@ class AutoLabApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
+        ChangeNotifierProvider(create: (_) => VehicleServiceProvider()),
       ],
       child: const _AppRouter(),
     );

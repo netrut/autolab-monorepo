@@ -20,6 +20,7 @@ import usersRoutes from "./routes/users.routes.js";
 import servicesRoutes from "./routes/services.routes.js";
 import vehiclesRoutes from "./routes/vehicles.routes.js";
 import serviceCentersRoutes from "./routes/serviceCenters.routes.js";
+import vehicleServiceRoutes from "./routes/vehicleService.routes.js";
 
 // Initialize Express app
 const app: any = express();
@@ -115,6 +116,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/services", servicesRoutes);
 app.use("/api/vehicles", vehiclesRoutes);
 app.use("/api/service-centers", serviceCentersRoutes);
+app.use("/api/vehicle-services", vehicleServiceRoutes);
 
 app.use((req: any, res: any) => {
   res.status(404).json({
