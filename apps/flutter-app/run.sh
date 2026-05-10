@@ -51,6 +51,15 @@ case "$TARGET" in
       --dart-define=API_URL="$API_URL"
     ;;
 
+  build-web)
+    echo "🌐 Building Flutter Web (release)..."
+    flutter build web --release \
+      --dart-define=API_URL="https://autolab-api.vercel.app"
+    echo ""
+    echo "✅ Web build: build/web/"
+    echo "   Deploy the build/web/ folder to your web server or hosting."
+    ;;
+
   build)
     echo "📦 Building release APK..."
     flutter build apk --release \

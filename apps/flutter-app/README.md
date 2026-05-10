@@ -140,9 +140,16 @@ bash run.sh build-debug
 
 bash run.sh build
 
+# To build build/web for deployment, run this single command:
+
+cd /workspaces/autolab-monorepo/apps/flutter-app && \
+export PATH="$PATH:/home/node/flutter-sdk/flutter/bin" && \
+flutter build web --release \
+ --dart-define=API_URL=https://autolab-api.vercel.app
+
 ## GitHub commit/push to deploye on verce
 
 cd /workspaces/autolab-monorepo/apps/flutter-app
 git add -f build/web
-git commit -m "Add Flutter web build for Vercel deployment"
+git commit -m "Add Flutter web build for Vercel deployment3"
 git push
