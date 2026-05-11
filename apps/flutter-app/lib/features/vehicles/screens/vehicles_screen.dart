@@ -3,10 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/models/vehicle_model.dart';
-import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/vehicle_provider.dart';
+import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/vehicle_card.dart';
 
 class VehiclesScreen extends StatefulWidget {
   const VehiclesScreen({super.key});
@@ -37,7 +38,6 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
     final provider = context.watch<VehicleProvider>();
 
     final filtered = provider.vehicles.where((v) {
@@ -53,7 +53,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: const Color(0xFFF3F3F3),
-      drawer: _buildDrawer(context, auth),
+      drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF3F3F3),
         iconTheme: const IconThemeData(color: Color(0xFF3E3E3E)),
@@ -199,38 +199,50 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
               Expanded(
                 child: provider.isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : filtered.isEmpty
-                        ? Center(
-                            child: Column( 
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.directions_car_outlined,
-                                    size: 64, color: Color(0xFFBDBDBD)),
-                                const SizedBox(height: 16),
-                                Text(
-                                    provider.vehicles.isEmpty
-                                        ? 'No vehicles added yet'
-                                        : 'No vehicles match your search',
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        color: const Color(0xFF7A7A7A))),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed: () =>
-                                      context.push('/vehicles/add'),
-                                  child: const Text('Add Vehicle'),
-                                ),
-                              ],
-                            ),
+                    // 8.5 — error state with retry
+                    : provider.error != null && provider.vehicles.isEmpty
+                        ? EmptyState(
+                            icon: Icons.error_outline,
+                            message: 'Failed to load vehicles',
+                            subMessage: 'Check your connection and try again',
+                            retryLabel: 'Retry',
+                            onRetry: () => provider.fetchVehicles(),
                           )
-                        : ListView.separated(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            itemCount: filtered.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (_, i) =>
-                                _VehicleCard(vehicle: filtered[i]),
-                  ),
+                        : filtered.isEmpty
+                            // 8.3 — improved empty state
+                            ? EmptyState(
+                                icon: Icons.directions_car_outlined,
+                                message: provider.vehicles.isEmpty
+                                    ? 'No vehicles added yet'
+                                    : 'No vehicles match your search',
+                                subMessage: provider.vehicles.isEmpty
+                                    ? 'Add your first vehicle to get started'
+                                    : null,
+                                actionLabel: provider.vehicles.isEmpty
+                                    ? 'Add Vehicle'
+                                    : null,
+                                onAction: provider.vehicles.isEmpty
+                                    ? () => context.push('/vehicles/add')
+                                    : null,
+                              )
+                            // 8.4 — pull-to-refresh
+                            : RefreshIndicator(
+                                onRefresh: () => provider.fetchVehicles(),
+                                child: ListView.separated(
+                                  padding: const EdgeInsets.only(bottom: 20),
+                                  itemCount: filtered.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 12),
+                                  itemBuilder: (_, i) => VehicleCard(
+                                    vehicleId: filtered[i].id,
+                                    displayName: filtered[i].displayName,
+                                    registrationNumber:
+                                        filtered[i].registrationNumber,
+                                    vehicleType: filtered[i].vehicleType,
+                                    fuelType: filtered[i].fuelType,
+                                  ),
+                                ),
+                              ),
               ),
             ],
           ),
@@ -294,162 +306,5 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context, AuthProvider auth) {
-    return Drawer( 
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('AUTOLAB',
-                  style: GoogleFonts.poppins(
-                      fontSize: 22, fontWeight: FontWeight.w700)),
-            ),
-            const Divider(),
-            _drawerItem(Icons.home_outlined, 'Home',
-                () => context.go('/home')),
-            _drawerItem(Icons.directions_car_outlined, 'My Vehicles',
-                () => context.go('/vehicles')),
-            _drawerItem(Icons.calendar_today_outlined, 'Bookings',
-                () => context.push('/bookings')),
-            _drawerItem(Icons.store_outlined, 'Service Centers',
-                () => context.push('/service-centers')),
-            _drawerItem(Icons.person_outline, 'Profile',
-                () => context.push('/profile')),
-            const Spacer(),
-            const Divider(),
-            _drawerItem(Icons.logout, 'Logout', () async {
-              await auth.logout();
-            }, color: Colors.red),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String label, VoidCallback onTap,
-      {Color? color}) {
-    return ListTile(
-      leading: Icon(icon, color: color ?? Colors.black),
-      title: Text(label,
-          style: GoogleFonts.poppins(
-              fontSize: 15, color: color ?? Colors.black)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: onTap,
-    );
-  }
 }
 
-class _VehicleCard extends StatelessWidget {
-  final VehicleModel vehicle;
-  const _VehicleCard({required this.vehicle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEAEAEA)),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x0A000000), blurRadius: 12, offset: Offset(0, 4))
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(  
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF2F2F2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              vehicle.isCar ? Icons.directions_car : Icons.two_wheeler,
-              size: 32,
-              color: const Color(0xFF1F1F1F),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(vehicle.displayName,
-                    style: GoogleFonts.poppins(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
-                if (vehicle.registrationNumber != null)
-                  Text(vehicle.registrationNumber!,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13, color: const Color(0xFF7A7A7A))),
-                Text(
-                    '${vehicle.vehicleType.toUpperCase()}${vehicle.fuelType != null ? ' • ${vehicle.fuelType}' : ''}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 12, color: const Color(0xFF9E9E9E))),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () => _showOptions(context),
-          ),
-        ],
-      ), 
-    ); 
-  }
-
-  void _showOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.build_outlined, color: Color(0xFF2F7DE1)),
-            title: const Text('New Service Record'),
-            subtitle: const Text('Fill service details after a service'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/service/form/${vehicle.id}');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.history, color: Color(0xFF2F9E56)),
-            title: const Text('Service History'),
-            subtitle: const Text('View all past service records'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/service/history/${vehicle.id}');
-            },
-          ),
-          const Divider(height: 1),
-          ListTile(
-            leading: const Icon(Icons.calendar_today_outlined),
-            title: const Text('Book Service'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/bookings/create');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline, color: Colors.red),
-            title: const Text('Remove Vehicle',
-                style: TextStyle(color: Colors.red)),
-            onTap: () async {
-              Navigator.pop(context);
-              await context
-                  .read<VehicleProvider>()
-                  .deleteVehicle(vehicle.id);
-            },
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-}

@@ -6,6 +6,10 @@ import 'core/providers/auth_provider.dart';
 import 'core/providers/vehicle_provider.dart';
 import 'core/providers/booking_provider.dart';
 import 'core/providers/vehicle_service_provider.dart';
+import 'core/providers/options_provider.dart';
+import 'core/providers/request_provider.dart';
+import 'core/providers/notification_provider.dart';
+import 'core/providers/service_centre_provider.dart';
 import 'core/utils/router.dart';
 import 'shared/theme/app_theme.dart';
 
@@ -25,6 +29,10 @@ class AutoLabApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => VehicleServiceProvider()),
+        ChangeNotifierProvider(create: (_) => OptionsProvider()..init()),
+        ChangeNotifierProvider(create: (_) => RequestProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ServiceCentreProvider()),
       ],
       child: const _AppRouter(),
     );
@@ -46,6 +54,20 @@ class _AppRouterState extends State<_AppRouter> {
     super.initState();
     final auth = context.read<AuthProvider>();
     _router = createRouter(auth);
+    // Init service centre switcher after auth resolves
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (auth.isLoggedIn) {
+        context.read<ServiceCentreProvider>().init();
+      }
+      // Re-init whenever login state changes
+      auth.addListener(() {
+        if (auth.isLoggedIn) {
+          context.read<ServiceCentreProvider>().init();
+        } else {
+          context.read<ServiceCentreProvider>().clear();
+        }
+      });
+    });
   }
 
   @override

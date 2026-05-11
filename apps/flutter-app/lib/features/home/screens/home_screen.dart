@@ -5,7 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/notification_provider.dart';
+import '../../../core/providers/options_provider.dart';
 import '../../../core/providers/vehicle_provider.dart';
+import '../../../core/providers/vehicle_service_provider.dart';
+import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/bottom_nav_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VehicleProvider>().fetchVehicles();
+      context.read<VehicleServiceProvider>().fetchHomeSummary();
+      context.read<NotificationProvider>().fetchUnreadCount();
     });
   }
 
@@ -28,10 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final vehicles = context.watch<VehicleProvider>();
+    final options = context.watch<OptionsProvider>();
+    final svc = context.watch<VehicleServiceProvider>();
+    final notifs = context.watch<NotificationProvider>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
-      drawer: _buildDrawer(context, auth),
+      drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF3F3F3),
         iconTheme: const IconThemeData(color: Color(0xFF3E3E3E)),
@@ -48,15 +57,44 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 6, 12, 6),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1F1F1F),
-                shape: BoxShape.circle,
+            child: GestureDetector(
+              onTap: () => context.push('/notifications'),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1F1F1F),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.notifications_none_rounded,
+                        color: Colors.white, size: 22),
+                  ),
+                  // 7.6 — unread badge
+                  if (notifs.unreadCount > 0)
+                    Positioned(
+                      top: -2,
+                      right: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                            color: Color(0xFFFF5963),
+                            shape: BoxShape.circle),
+                        child: Text(
+                          notifs.unreadCount > 9
+                              ? '9+'
+                              : '${notifs.unreadCount}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              child: const Icon(Icons.notifications_none_rounded,
-                  color: Colors.white, size: 22),
             ),
           ),
         ],
@@ -200,8 +238,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _ServiceCard(
                       icon: Icons.handyman_outlined,
                       title: 'Due Services',
-                      subtitle: '3 Services Pending',
-                      onTap: () => context.push('/bookings'),
+                      // 4.4 — real due count
+                      subtitle: svc.dueCount > 0
+                          ? '${svc.dueCount} Service${svc.dueCount == 1 ? '' : 's'} Pending'
+                          : 'All up to date',
+                      onTap: () => context.push('/services'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -209,8 +250,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _ServiceCard(
                       icon: Icons.calendar_month_outlined,
                       title: 'Next Service',
-                      subtitle: '14 Mar 2026',
-                      onTap: () => context.push('/bookings'),
+                      // 4.5 — real next service date
+                      subtitle: svc.nextServiceDate != null
+                          ? _formatDate(svc.nextServiceDate!)
+                          : 'Not scheduled',
+                      onTap: () => context.push('/services'),
                     ),
                   ),
                 ],
@@ -267,42 +311,66 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Service Update',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF232323))),
+                          Text(
+                            // 4.6 — show latest service vehicle name
+                            svc.latestService != null
+                                ? svc.latestService!.vehicleDisplayName.isNotEmpty
+                                    ? svc.latestService!.vehicleDisplayName
+                                    : 'Latest Service'
+                                : 'Service Update',
+                            style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF232323))),
                           const SizedBox(height: 10),
-                          Text('•  Parts Replaced',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF3B3B3B))),
-                          const SizedBox(height: 4),
-                          Text('•  Oil Changed',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF3B3B3B))),
-                          const SizedBox(height: 4),
-                          Text('•  Next Due Updated',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF3B3B3B))),
-                          const SizedBox(height: 4),
-                          Text('•  Customer Notified',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF3B3B3B))),
+                          // 4.6 — show latest service items or static fallback
+                          if (svc.latestService != null &&
+                              svc.latestService!.items.isNotEmpty)
+                            ...svc.latestService!.items.take(4).map(
+                              (item) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text('•  ${item.itemName}',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFF3B3B3B))),
+                              ),
+                            )
+                          else ...[
+                            Text('•  Parts Replaced',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF3B3B3B))),
+                            const SizedBox(height: 4),
+                            Text('•  Oil Changed',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF3B3B3B))),
+                            const SizedBox(height: 4),
+                            Text('•  Next Due Updated',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF3B3B3B))),
+                          ],
                           const SizedBox(height: 14),
                           ElevatedButton(
-                            onPressed: () => context.push('/bookings'),
+                            // 4.7 — route to service form for most recent vehicle
+                            onPressed: () {
+                              final vehicleId = svc.latestServiceVehicleId;
+                              if (vehicleId != null) {
+                                context.push('/service/form/$vehicleId');
+                              } else {
+                                context.push('/services');
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1B1F26),
                               minimumSize: const Size(0, 36),
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                               elevation: 0,
@@ -354,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       imagePath: 'assets/images/four-wheeler.png',
                       title: '+ Add Four-Wheeler',
                       subtitle: 'Car, SUV',
-                      onTap: () => context.push('/vehicles/add'),
+                      onTap: () => context.push('/vehicles/add?type=car'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -363,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       imagePath: 'assets/images/two-wheeler.png',
                       title: '+ Add Two-Wheeler',
                       subtitle: 'Bike, Scooter',
-                      onTap: () => context.push('/vehicles/add'),
+                      onTap: () => context.push('/vehicles/add?type=bike'),
                     ),
                   ),
                 ],
@@ -377,7 +445,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: const Color(0xFF202020))),
               const SizedBox(height: 8),
               _ContactCard(onTap: () async {
-                await launchUrl(Uri.parse('https://wa.me/919664027924'),
+                final url = options.helplineWhatsapp.isNotEmpty
+                    ? options.helplineWhatsapp
+                    : 'https://wa.me/${options.helplineNumber}';
+                await launchUrl(Uri.parse(url),
                     mode: LaunchMode.externalApplication);
               }),
             ],
@@ -387,51 +458,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context, AuthProvider auth) {
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('AUTOLAB',
-                  style: GoogleFonts.poppins(
-                      fontSize: 22, fontWeight: FontWeight.w700)),
-            ),
-            const Divider(),
-            _drawerItem(Icons.home_outlined, 'Home',
-                () => context.go('/home')),
-            _drawerItem(Icons.directions_car_outlined, 'My Vehicles',
-                () => context.push('/vehicles')),
-            _drawerItem(Icons.calendar_today_outlined, 'Bookings',
-                () => context.push('/bookings')),
-            _drawerItem(Icons.store_outlined, 'Service Centers',
-                () => context.push('/service-centers')),
-            _drawerItem(Icons.person_outline, 'Profile',
-                () => context.push('/profile')),
-            const Spacer(),
-            const Divider(),
-            _drawerItem(Icons.logout, 'Logout', () async {
-              await auth.logout();
-            }, color: Colors.red),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
+  String _formatDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
-  Widget _drawerItem(IconData icon, String label, VoidCallback onTap,
-      {Color? color}) {
-    return ListTile(
-      leading: Icon(icon, color: color ?? Colors.black),
-      title: Text(label,
-          style: GoogleFonts.poppins(
-              fontSize: 15, color: color ?? Colors.black)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: onTap,
-    );
-  }
 }
 
 class _ServiceCard extends StatelessWidget {

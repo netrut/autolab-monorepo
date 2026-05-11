@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/service_centre_provider.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
 
@@ -42,9 +43,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     if (!mounted) return;
     if (ok) {
+      // New user: init provider (no centres yet) then go to onboard
+      await context.read<ServiceCentreProvider>().init();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Registered! Check your email to verify.')));
-      context.go('/auth/login');
+          content: Text('Account created! Set up your service centre.')));
+      context.go('/service-centers/onboard');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(auth.error ?? 'Registration failed')));

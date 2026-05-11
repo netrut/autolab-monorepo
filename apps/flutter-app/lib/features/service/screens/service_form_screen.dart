@@ -3,9 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/api/api_client.dart';
+import '../../../core/models/service_center_model.dart';
 import '../../../core/models/service_item_model.dart';
 import '../../../core/models/vehicle_service_model.dart';
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/options_provider.dart';
 import '../../../core/providers/vehicle_service_provider.dart';
 
 class ServiceFormScreen extends StatefulWidget {
@@ -38,6 +43,10 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   VehicleWithServiceStatus? _vehicle;
   VehicleServiceModel? _existingRecord;
 
+  // 4.1 — service centre + submitted-by info
+  String? _centreName;
+  String? _submittedBy;
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +55,30 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
 
   Future<void> _loadData() async {
     final provider = context.read<VehicleServiceProvider>();
+
+    // 4.1 — load service centre name + submitted-by user
+    final auth = context.read<AuthProvider>();
+    _submittedBy = auth.user?.displayName ?? auth.user?.email;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final scId = prefs.getString('service_center_id');
+      if (scId != null && scId.isNotEmpty) {
+        final res = await ApiClient().get('/api/service-centers/$scId');
+        final center = ServiceCenterModel.fromJson(
+            res.data as Map<String, dynamic>);
+        _centreName = center.name;
+      } else {
+        // fallback to options table value
+        if (mounted) {
+          _centreName =
+              context.read<OptionsProvider>().serviceCentreName;
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        _centreName = context.read<OptionsProvider>().serviceCentreName;
+      }
+    }
 
     // Find vehicle from already-loaded list, or fetch if not yet loaded
     if (provider.vehicles.isEmpty) {
@@ -136,6 +169,32 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   }
 
   // ── Date picker ─────────────────────────────────────────────────────────────
+
+  // ── Generate Invoice (5.7) ──────────────────────────────────────────────────
+
+  Future<void> _generateInvoice() async {
+    final serviceId = _existingRecord?.id ?? widget.serviceId;
+    if (serviceId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Save the service record first before generating an invoice')),
+      );
+      return;
+    }
+    try {
+      final options = context.read<OptionsProvider>();
+      await ApiClient().post('/api/invoices', data: {
+        'service_id': serviceId,
+        'footer_text': options.invoiceFooterText,
+      });
+      if (!mounted) return;
+      context.push('/invoice/$serviceId');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate invoice: $e')),
+      );
+    }
+  }
 
   Future<void> _pickDate({required bool isNext}) async {
     final initial = isNext ? (_nextServiceDate ?? DateTime.now().add(const Duration(days: 90))) : _serviceDate;
@@ -426,6 +485,23 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
               _sectionTitle('Cost Summary'),
               const SizedBox(height: 8),
               _buildCostSection(),
+              const SizedBox(height: 12),
+
+              // 5.7 — Generate Invoice (wired)
+              OutlinedButton.icon(
+                onPressed: _generateInvoice,
+                icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                label: Text('Generate Invoice',
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF2F7DE1),
+                  side: const BorderSide(color: Color(0xFF2F7DE1)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
               const SizedBox(height: 20),
 
               // Notes
@@ -476,24 +552,69 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
     final v = _vehicle!;
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE4E4E4))),
-      child: Row(
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE4E4E4))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 50, height: 50,
-            decoration: BoxDecoration(color: const Color(0xFFF3F3F3), borderRadius: BorderRadius.circular(10)),
-            child: Icon(v.isCar ? Icons.directions_car : Icons.two_wheeler, color: Colors.grey[600]),
+          Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                    color: const Color(0xFFF3F3F3),
+                    borderRadius: BorderRadius.circular(10)),
+                child: Icon(v.isCar ? Icons.directions_car : Icons.two_wheeler,
+                    color: Colors.grey[600]),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(v.registrationNumber ?? v.displayName,
+                        style: GoogleFonts.poppins(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                    Text('${v.isCar ? 'Car' : 'Bike'} • ${v.displayName}',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: Colors.grey[600])),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // 4.1 — service centre + submitted by
+          if (_centreName != null || _submittedBy != null) ...[
+            const SizedBox(height: 8),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+            Row(
               children: [
-                Text(v.registrationNumber ?? v.displayName, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
-                Text('${v.isCar ? 'Car' : 'Bike'} • ${v.displayName}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600])),
+                if (_centreName != null) ...[
+                  const Icon(Icons.store_outlined,
+                      size: 13, color: Color(0xFF7A7A7A)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(_centreName!,
+                        style: GoogleFonts.poppins(
+                            fontSize: 11, color: const Color(0xFF7A7A7A))),
+                  ),
+                ],
+                if (_submittedBy != null) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.person_outline,
+                      size: 13, color: Color(0xFF7A7A7A)),
+                  const SizedBox(width: 4),
+                  Text(_submittedBy!,
+                      style: GoogleFonts.poppins(
+                          fontSize: 11, color: const Color(0xFF7A7A7A))),
+                ],
               ],
             ),
-          ),
+          ],
         ],
       ),
     );

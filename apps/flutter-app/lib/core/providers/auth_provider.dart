@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
 import '../models/user_model.dart';
 
@@ -14,6 +15,9 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
   bool get isLoggedIn => _user != null;
 
+  static const _keyUserId = 'user_id';
+  static const _keyServiceCenterId = 'service_center_id';
+
   final _api = ApiClient();
 
   // ── Initialise ─────────────────────────────────────────────────────────────
@@ -23,6 +27,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final res = await _api.get('/api/users/profile');
       _user = UserModel.fromJson(res.data as Map<String, dynamic>);
+      await _saveSession(_user!.id);
     } catch (_) {
       await ApiClient.clearToken();
     }
@@ -39,6 +44,7 @@ class AuthProvider extends ChangeNotifier {
       final body = res.data as Map<String, dynamic>;
       await ApiClient.saveToken(body['token'] as String);
       _user = UserModel.fromJson(body['user'] as Map<String, dynamic>);
+      await _saveSession(_user!.id);
       _error = null;
       notifyListeners();
       return true;
@@ -116,6 +122,7 @@ class AuthProvider extends ChangeNotifier {
       final body = res.data as Map<String, dynamic>;
       await ApiClient.saveToken(body['token'] as String);
       _user = UserModel.fromJson(body['user'] as Map<String, dynamic>);
+      await _saveSession(_user!.id);
       _error = null;
       notifyListeners();
       return true;
@@ -150,8 +157,40 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     await ApiClient.clearToken();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyUserId);
+    await prefs.remove(_keyServiceCenterId);
     _user = null;
     notifyListeners();
+  }
+
+  // ── Session helpers ────────────────────────────────────────────────────────
+
+  Future<void> _saveSession(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyUserId, userId);
+    // Fetch service_center_id for this user
+    try {
+      final res = await _api.get('/api/users/service-center');
+      final scId = (res.data as Map<String, dynamic>)['service_center_id'] as String?;
+      if (scId != null) {
+        await prefs.setString(_keyServiceCenterId, scId);
+      } else {
+        await prefs.remove(_keyServiceCenterId);
+      }
+    } catch (_) {
+      // non-fatal — service center may not be assigned yet
+    }
+  }
+
+  static Future<String?> getSavedUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyUserId);
+  }
+
+  static Future<String?> getSavedServiceCenterId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyServiceCenterId);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

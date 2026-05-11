@@ -16,6 +16,12 @@ import '../../features/service/screens/service_screen.dart';
 import '../../features/service/screens/service_form_screen.dart';
 import '../../features/service/screens/service_history_screen.dart';
 import '../../features/service/screens/service_detail_screen.dart';
+import '../../features/service_centers/screens/service_centers_screen.dart';
+import '../../features/service_centers/screens/add_service_center_screen.dart';
+import '../../features/service_centers/screens/service_centre_gateway_screen.dart';
+import '../../features/invoice/screens/invoice_screen.dart';
+import '../../features/requests/screens/requests_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -65,7 +71,15 @@ GoRouter createRouter(AuthProvider authProvider) {
         routes: [
           GoRoute(
             path: 'add',
-            builder: (_, __) => const AddVehicleScreen(),
+            builder: (_, state) => AddVehicleScreen(
+              initialType: state.uri.queryParameters['type'],
+            ),
+          ),
+          GoRoute(
+            path: 'edit/:vehicleId',
+            builder: (_, state) => AddVehicleScreen(
+              vehicleId: state.pathParameters['vehicleId'],
+            ),
           ),
         ],
       ),
@@ -75,7 +89,9 @@ GoRouter createRouter(AuthProvider authProvider) {
         routes: [
           GoRoute(
             path: 'create',
-            builder: (_, __) => const CreateBookingScreen(),
+            builder: (_, state) => CreateBookingScreen(
+              initialVehicleId: state.uri.queryParameters['vehicleId'],
+            ),
           ),
         ],
       ),
@@ -109,6 +125,40 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/profile',
         builder: (_, __) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/service-centers',
+        builder: (_, __) => const ServiceCentersScreen(),
+        routes: [
+          GoRoute(
+            path: 'add',
+            builder: (_, __) => const AddServiceCenterScreen(),
+          ),
+          GoRoute(
+            path: 'edit/:centreId',
+            builder: (_, state) => AddServiceCenterScreen(
+              centreId: state.pathParameters['centreId'],
+            ),
+          ),
+          GoRoute(
+            path: 'onboard',
+            builder: (_, __) => const ServiceCentreGatewayScreen(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/invoice/:serviceId',
+        builder: (_, state) => InvoiceScreen(
+          serviceId: state.pathParameters['serviceId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/requests',
+        builder: (_, __) => const RequestsScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (_, __) => const NotificationsScreen(),
       ),
     ],
   );

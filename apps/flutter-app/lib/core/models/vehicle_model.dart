@@ -9,6 +9,7 @@ class VehicleModel {
   final String? vehicleColor;
   final String? fuelType;
   final String? transmission;
+  final String? chassisNumber;
   final bool? isActive;
 
   const VehicleModel({
@@ -22,6 +23,7 @@ class VehicleModel {
     this.vehicleColor,
     this.fuelType,
     this.transmission,
+    this.chassisNumber,
     this.isActive,
   });
 
@@ -36,6 +38,7 @@ class VehicleModel {
         vehicleColor: json['vehicle_color'] as String?,
         fuelType: json['fuel_type'] as String?,
         transmission: json['transmission'] as String?,
+        chassisNumber: json['chassis_number'] as String?,
         isActive: json['is_active'] as bool?,
       );
 
@@ -49,6 +52,7 @@ class VehicleModel {
         'vehicle_color': vehicleColor,
         'fuel_type': fuelType,
         'transmission': transmission,
+        'chassis_number': chassisNumber,
       };
 
   bool get isCar => vehicleType.toLowerCase() == 'car';

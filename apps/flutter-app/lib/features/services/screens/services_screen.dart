@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/models/vehicle_model.dart';
 import '../../../core/providers/vehicle_provider.dart';
 import '../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../shared/widgets/vehicle_card.dart';
 
 class ServicesScreen extends StatefulWidget {
   const ServicesScreen({super.key});
@@ -47,29 +48,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
       return 'completed';
     }
     return 'due';
-  }
-
-  ({String label, Color bgColor, Color textColor}) _statusStyle(String status) {
-    switch (status) {
-      case 'upcoming':
-        return (
-          label: 'Upcoming Service',
-          bgColor: const Color(0xFFEAF2FF),
-          textColor: const Color(0xFF2F7DE1),
-        );
-      case 'completed':
-        return (
-          label: 'Service Completed',
-          bgColor: const Color(0xFFE8F7EE),
-          textColor: const Color(0xFF2F9E56),
-        );
-      default:
-        return (
-          label: 'Due Service',
-          bgColor: const Color(0xFFFFF0DE),
-          textColor: const Color(0xFFDA8A1D),
-        );
-    }
   }
 
   Color _filterBgColor(String? f) {
@@ -293,142 +271,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-  // ── Vehicle service card ────────────────────────────────────────────────────
-
-  Widget _buildVehicleCard(VehicleModel v) {
-    final status = _serviceStatus(v);
-    final style = _statusStyle(status);
-    final isCar = v.isCar;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Container(
-        width: double.infinity,
-        height: 154,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE4E4E4)),
-          boxShadow: const [
-            BoxShadow(
-                blurRadius: 10,
-                color: Color(0x14000000),
-                offset: Offset(0, 4))
-          ],
-        ),
-        child: Row(
-          children: [
-            // Vehicle image
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Container(
-                width: 112,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F3F3),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    isCar
-                        ? 'assets/images/four-wheeler.png'
-                        : 'assets/images/two-wheeler.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-            ),
-            // Details
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      v.registrationNumber ?? v.displayName,
-                      style: GoogleFonts.poppins(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF232323)),
-                    ),
-                    const SizedBox(height: 6),
-                    // Status chip
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: style.bgColor,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(style.label,
-                          style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: style.textColor)),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${isCar ? 'Car' : 'Bike'} • ${v.displayName}',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF7A7A7A)),
-                    ),
-                    const Spacer(),
-                    // Action buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _actionButton(
-                            label: 'Service',
-                            filled: true,
-                            onTap: () => context.push('/bookings/create'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _actionButton(
-                            label: 'History',
-                            filled: false,
-                            onTap: () => context.push('/bookings'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _actionButton(
-      {required String label,
-      required bool filled,
-      required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 34,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: filled ? const Color(0xFF1F1F1F) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF1F1F1F)),
-        ),
-        child: Text(label,
-            style: GoogleFonts.poppins(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w500,
-                color: filled ? Colors.white : const Color(0xFF1F1F1F))),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<VehicleProvider>();
@@ -575,7 +417,14 @@ class _ServicesScreenState extends State<ServicesScreen> {
                               padding: const EdgeInsets.only(bottom: 20),
                               itemCount: filtered.length,
                               itemBuilder: (_, i) =>
-                                  _buildVehicleCard(filtered[i]),
+                                  VehicleCard(
+                                    vehicleId: filtered[i].id,
+                                    displayName: filtered[i].displayName,
+                                    registrationNumber: filtered[i].registrationNumber,
+                                    vehicleType: filtered[i].vehicleType,
+                                    fuelType: filtered[i].fuelType,
+                                    serviceStatus: _serviceStatus(filtered[i]),
+                                  ),
                             ),
                 ),
               ],

@@ -151,5 +151,5 @@ flutter build web --release \
 
 cd /workspaces/autolab-monorepo/apps/flutter-app
 git add -f build/web
-git commit -m "Add Flutter web build for Vercel deployment3"
-git push
+git commit -m "Flutter-App Service Center Onboard"
+git push origin main

@@ -21,6 +21,13 @@ class VehicleServiceProvider extends ChangeNotifier {
   // Upcoming services
   List<VehicleServiceModel> _upcoming = [];
 
+  // Home screen summary
+  int _dueCount = 0;
+  DateTime? _nextServiceDate;
+  VehicleServiceModel? _latestService;
+  String? _latestServiceVehicleId;
+  bool _summaryLoading = false;
+
   // Form state
   bool _saving = false;
   String? _saveError;
@@ -38,6 +45,12 @@ class VehicleServiceProvider extends ChangeNotifier {
   bool get catalogueLoading => _catalogueLoading;
 
   List<VehicleServiceModel> get upcoming => _upcoming;
+
+  int get dueCount => _dueCount;
+  DateTime? get nextServiceDate => _nextServiceDate;
+  VehicleServiceModel? get latestService => _latestService;
+  String? get latestServiceVehicleId => _latestServiceVehicleId;
+  bool get summaryLoading => _summaryLoading;
 
   bool get saving => _saving;
   String? get saveError => _saveError;
@@ -136,6 +149,43 @@ class VehicleServiceProvider extends ChangeNotifier {
           .toList();
       notifyListeners();
     } catch (_) {}
+  }
+
+  // ── Fetch home screen summary (due count, next date, latest service) ─────────
+
+  Future<void> fetchHomeSummary() async {
+    _summaryLoading = true;
+    notifyListeners();
+    try {
+      // Reuse vehicles-with-status endpoint — already has due/upcoming info
+      if (_vehicles.isEmpty) await fetchVehiclesWithStatus();
+
+      // Due count = vehicles with status 'due'
+      _dueCount = _vehicles.where((v) => v.serviceStatus == 'due').length;
+
+      // Next service date = earliest upcoming nextServiceDate
+      final upcoming = _vehicles
+          .where((v) =>
+              v.serviceStatus == 'upcoming' && v.nextServiceDate != null)
+          .map((v) => v.nextServiceDate!)
+          .toList()
+        ..sort();
+      _nextServiceDate = upcoming.isNotEmpty ? upcoming.first : null;
+
+      // Latest completed service record
+      final res = await _api.get('/api/vehicle-services/latest');
+      final data = res.data as Map<String, dynamic>;
+      if (data['service'] != null) {
+        _latestService = VehicleServiceModel.fromJson(
+            data['service'] as Map<String, dynamic>);
+        _latestServiceVehicleId = _latestService!.vehicleId;
+      }
+    } catch (_) {
+      // non-fatal — home screen degrades gracefully
+    } finally {
+      _summaryLoading = false;
+      notifyListeners();
+    }
   }
 
   // ── Create service record ────────────────────────────────────────────────────
