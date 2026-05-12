@@ -1,19 +1,20 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware.js';
+import { createNotification } from '../services/notificationService.js';
+import prisma from '../config/prisma.js';
 
-const prisma = new PrismaClient();
 
 export const bookingController = {
   async list(req: AuthRequest, res: Response) {
     try {
-      const { page = '1', limit = '10', status, search, sort } = req.query as Record<string, string>;
+      const { page = '1', limit = '10', status, search, sort, service_center_id } = req.query as Record<string, string>;
       const pageNum = Math.max(1, parseInt(page));
       const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
       const skip = (pageNum - 1) * limitNum;
 
       const where: any = {};
       if (status) where.status = status;
+      if (service_center_id) where.service_center_id = service_center_id;
       if (search) {
         where.OR = [
           { service_type: { contains: search, mode: 'insensitive' } },
@@ -119,6 +120,17 @@ export const bookingController = {
           users: { select: { id: true, email: true, display_name: true } }
         }
       });
+      // 7.8 — notify booking owner on status change
+      if (status && status !== existing.status) {
+        await createNotification({
+          userId: existing.user_id,
+          type: 'booking_update',
+          title: 'Booking Status Updated',
+          body: `Your booking status has been updated to: ${status}.`,
+          entityType: 'booking',
+          entityId: req.params.id,
+        });
+      }
       res.json(booking);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update booking' });

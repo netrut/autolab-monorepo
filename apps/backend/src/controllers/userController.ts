@@ -1,9 +1,8 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 import bcryptjs from 'bcryptjs';
+import prisma from '../config/prisma.js';
 
-const prisma = new PrismaClient();
 
 const USER_SELECT = {
   id: true, email: true, phone_number: true, display_name: true,
@@ -146,6 +145,44 @@ export const userController = {
       res.json(user);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  },
+
+  async getServiceCenter(req: AuthRequest, res: Response) {
+    try {
+      const map = await prisma.serviceCenterUserMap.findFirst({
+        where: { user_id: req.user!.userId },
+        orderBy: { created_at: 'asc' },
+        select: { service_center_id: true, role: true }
+      });
+      res.json({ service_center_id: map?.service_center_id ?? null, role: map?.role ?? null });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch service center' });
+    }
+  },
+
+  // GET /api/users/service-centers — all centres mapped to the current user
+  async getServiceCenters(req: AuthRequest, res: Response) {
+    try {
+      const maps = await prisma.serviceCenterUserMap.findMany({
+        where: { user_id: req.user!.userId },
+        orderBy: { created_at: 'asc' },
+        include: {
+          service_center: {
+            select: {
+              id: true, name: true, city: true, category: true,
+              is_verified: true, is_active: true, onboarding_status: true,
+            },
+          },
+        },
+      });
+      const centers = maps.map(m => ({
+        ...m.service_center,
+        role: m.role,
+      }));
+      res.json({ centers });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch service centers' });
     }
   }
 };

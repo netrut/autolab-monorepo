@@ -17,6 +17,10 @@ router.get('/profile', userController.getProfile);
 router.put('/profile', userController.updateProfile);
 router.delete('/profile', userController.deleteProfile);
 
+// Service centre lookup for logged-in user
+router.get('/service-center',  userController.getServiceCenter);
+router.get('/service-centers', userController.getServiceCenters);
+
 // Get by ID
 router.get('/:id', userController.getById);
 

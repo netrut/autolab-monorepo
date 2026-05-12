@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { AuthRequest } from "../middleware/auth.middleware.js";
+import prisma from '../config/prisma.js';
 
-const prisma = new PrismaClient();
 
 export const serviceCenterController = {
   async list(req: Request, res: Response) {
@@ -53,7 +52,9 @@ export const serviceCenterController = {
 
   async create(req: AuthRequest, res: Response) {
     try {
-      const center = await prisma.serviceCenter.create({ data: req.body });
+      const center = await prisma.serviceCenter.create({
+        data: { ...req.body, owner_user_id: req.body.owner_user_id ?? req.user?.userId }
+      });
       res.status(201).json(center);
     } catch (error) {
       res.status(500).json({ error: "Failed to create service center" });
@@ -67,9 +68,37 @@ export const serviceCenterController = {
       });
       if (!existing) return res.status(404).json({ error: "Service center not found" });
 
+      const {
+        name, phone, email, description, address, city, state, pincode,
+        category, maps_link, latitude, longitude,
+        vehicle_types, service_types, brands_serviced,
+        working_hours, accepts_bookings, onboarding_status,
+        ...rest
+      } = req.body;
+
       const center = await prisma.serviceCenter.update({
         where: { id: req.params.id },
-        data: { ...req.body, updated_at: new Date() },
+        data: {
+          ...(name !== undefined && { name }),
+          ...(phone !== undefined && { phone }),
+          ...(email !== undefined && { email }),
+          ...(description !== undefined && { description }),
+          ...(address !== undefined && { address }),
+          ...(city !== undefined && { city }),
+          ...(state !== undefined && { state }),
+          ...(pincode !== undefined && { pincode }),
+          ...(category !== undefined && { category }),
+          ...(maps_link !== undefined && { maps_link }),
+          ...(latitude !== undefined && { latitude }),
+          ...(longitude !== undefined && { longitude }),
+          ...(vehicle_types !== undefined && { vehicle_types }),
+          ...(service_types !== undefined && { service_types }),
+          ...(brands_serviced !== undefined && { brands_serviced }),
+          ...(working_hours !== undefined && { working_hours }),
+          ...(accepts_bookings !== undefined && { accepts_bookings }),
+          ...(onboarding_status !== undefined && { onboarding_status }),
+          updated_at: new Date(),
+        },
       });
       res.json(center);
     } catch (error) {

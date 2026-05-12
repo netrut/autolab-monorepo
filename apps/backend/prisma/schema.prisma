@@ -28,7 +28,14 @@ model User {
   car_services  car_services[]
   vehicles      Vehicle[]
   // NEW: relation to new vehicle service records
-  vehicle_services VehicleService[]
+  vehicle_services        VehicleService[]
+  service_center_user_map ServiceCenterUserMap[]
+  vehicle_user_map        VehicleUserMap[]
+  invoices                Invoice[]
+  requests_sent           Request[] @relation("RequestsFrom")
+  requests_received       Request[] @relation("RequestsTo")
+  notifications           Notification[]
+  owned_service_centers   ServiceCenter[] @relation("ServiceCenterOwner")
 
   @@index([email], map: "idx_users_email")
   @@map("users")
@@ -46,6 +53,7 @@ model Vehicle {
   fuel_type           String?          @db.VarChar(50)
   transmission        String?          @db.VarChar(50)
   mileage_km          Decimal?         @db.Decimal(10, 2)
+  chassis_number      String?          @db.VarChar(100)
   notes               String?
   is_active           Boolean?         @default(true)
   created_at          DateTime?        @default(now()) @db.Timestamp(6)
@@ -56,31 +64,93 @@ model Vehicle {
   // NEW: relation to new vehicle service records
   vehicle_services    VehicleService[]
   users               User             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vehicle_user_map    VehicleUserMap[]
+  invoices            Invoice[]
 
   @@index([user_id], map: "idx_vehicles_user_id")
   @@map("vehicles")
 }
 
 model ServiceCenter {
-  id            String          @id @default(uuid())
-  name          String          @db.VarChar(255)
-  description   String?
-  phone         String          @db.VarChar(20)
-  email         String?         @db.VarChar(255)
-  address       String?
-  city          String?         @db.VarChar(100)
-  state         String?         @db.VarChar(100)
-  pincode       String?         @db.VarChar(10)
-  rating        Decimal?        @default(0) @db.Decimal(3, 2)
-  is_verified   Boolean?        @default(false)
-  is_active     Boolean?        @default(true)
-  created_at    DateTime?       @default(now()) @db.Timestamp(6)
-  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
-  bike_services bike_services[]
-  bookings      Booking[]
-  car_services  car_services[]
+  id                 String          @id @default(uuid())
+  name               String          @db.VarChar(255)
+  description        String?
+  phone              String          @db.VarChar(20)
+  email              String?         @db.VarChar(255)
+  address            String?
+  city               String?         @db.VarChar(100)
+  state              String?         @db.VarChar(100)
+  pincode            String?         @db.VarChar(10)
+  rating             Decimal?        @default(0) @db.Decimal(3, 2)
+  is_verified        Boolean?        @default(false)
+  is_active          Boolean?        @default(true)
+  owner_user_id      String?
+  // category: service_center | decor_accessories | seller | other
+  category           String          @default("service_center") @db.VarChar(100)
+  // app-facing filter/search fields
+  maps_link          String?         @db.VarChar(500)
+  latitude           Decimal?        @db.Decimal(10, 7)
+  longitude          Decimal?        @db.Decimal(10, 7)
+  vehicle_types      String[]        @default([])
+  service_types      String[]        @default([])
+  brands_serviced    String[]        @default([])
+  working_hours      String?         @db.VarChar(255)
+  accepts_bookings   Boolean         @default(true)
+  onboarding_status  String          @default("draft") @db.VarChar(50)
+  created_at         DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?       @default(now()) @db.Timestamp(6)
+  bike_services           bike_services[]
+  bookings                Booking[]
+  car_services            car_services[]
+  service_center_user_map ServiceCenterUserMap[]
+  details                 ServiceCenterDetails?
+  owner                   User?   @relation("ServiceCenterOwner", fields: [owner_user_id], references: [id], onDelete: SetNull)
 
+  @@index([owner_user_id],     map: "idx_service_centers_owner")
+  @@index([category],          map: "idx_service_centers_category")
+  @@index([onboarding_status], map: "idx_service_centers_status")
   @@map("service_centers")
+}
+
+model ServiceCenterDetails {
+  id                        String        @id @default(uuid())
+  service_center_id         String        @unique
+  // Business identity
+  trade_name                String?       @db.VarChar(255)
+  business_type             String?       @db.VarChar(50)
+  year_established          Int?
+  website                   String?       @db.VarChar(500)
+  logo_url                  String?       @db.VarChar(500)
+  whatsapp_number           String?       @db.VarChar(20)
+  // Legal IDs
+  gst_number                String?       @db.VarChar(20)
+  pan_number                String?       @db.VarChar(15)
+  shop_reg_number           String?       @db.VarChar(100)
+  trade_license             String?       @db.VarChar(100)
+  msme_number               String?       @db.VarChar(100)
+  // Owner / contact person
+  owner_name                String?       @db.VarChar(255)
+  owner_phone               String?       @db.VarChar(20)
+  owner_email               String?       @db.VarChar(255)
+  designation               String?       @db.VarChar(100)
+  aadhaar_last4             String?       @db.VarChar(4)
+  // Bank details
+  account_holder            String?       @db.VarChar(255)
+  bank_name                 String?       @db.VarChar(255)
+  account_number_encrypted  String?       @db.VarChar(500)
+  ifsc_code                 String?       @db.VarChar(20)
+  upi_id                    String?       @db.VarChar(100)
+  // Documents JSONB
+  documents                 Json          @default("[]")
+  // Admin
+  rejection_reason          String?
+  verified_at               DateTime?     @db.Timestamp(6)
+  submitted_at              DateTime?     @db.Timestamp(6)
+  created_at                DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at                DateTime?     @default(now()) @db.Timestamp(6)
+  service_center            ServiceCenter @relation(fields: [service_center_id], references: [id], onDelete: Cascade)
+
+  @@map("service_center_details")
 }
 
 model Booking {
@@ -148,6 +218,46 @@ model car_services {
   @@index([vehicle_id], map: "idx_car_services_vehicle_id")
 }
 
+// ── Phase 0 new models ───────────────────────────────────────────────────────
+
+model ServiceCenterUserMap {
+  id                String        @id @default(uuid())
+  service_center_id String
+  user_id           String
+  role              String        @default("user") @db.VarChar(50)
+  created_at        DateTime?     @default(now()) @db.Timestamp(6)
+  service_center    ServiceCenter @relation(fields: [service_center_id], references: [id], onDelete: Cascade)
+  user              User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([service_center_id, user_id])
+  @@index([user_id], map: "idx_sc_user_map_user_id")
+  @@map("service_center_user_map")
+}
+
+model VehicleUserMap {
+  id         String    @id @default(uuid())
+  vehicle_id String
+  user_id    String
+  role       String    @default("user") @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  vehicle    Vehicle   @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([vehicle_id, user_id])
+  @@index([user_id], map: "idx_vehicle_user_map_user_id")
+  @@map("vehicle_user_map")
+}
+
+model Option {
+  key        String   @id @db.VarChar(100)
+  value      String
+  label      String   @db.VarChar(255)
+  group      String   @default("general") @db.VarChar(100)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@map("options")
+}
+
 // ── NEW MODELS (vehicle service core feature) ─────────────────────────────────
 
 // One service record per visit — unified for car & bike
@@ -168,6 +278,7 @@ model VehicleService {
   vehicle           Vehicle       @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
   user              User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   items             ServiceItem[]
+  invoice           Invoice?
 
   @@index([vehicle_id], map: "idx_vehicle_services_vehicle_id")
   @@index([service_date], map: "idx_vehicle_services_date")
@@ -202,4 +313,76 @@ model ServiceItemCatalogue {
   created_at   DateTime @default(now()) @db.Timestamp(6)
 
   @@map("service_item_catalogue")
+}
+
+// ── Phase 5: Invoice ─────────────────────────────────────────────────────────
+
+model Invoice {
+  id                String         @id @default(uuid())
+  service_id        String         @unique
+  vehicle_id        String
+  user_id           String
+  service_center_id String?
+  invoice_number    String         @db.VarChar(50)
+  service_date      DateTime       @db.Timestamp(6)
+  total_cost        Decimal        @default(0) @db.Decimal(10, 2)
+  labour_cost       Decimal        @default(0) @db.Decimal(10, 2)
+  items_cost        Decimal        @default(0) @db.Decimal(10, 2)
+  footer_text       String?
+  notes             String?
+  created_at        DateTime?      @default(now()) @db.Timestamp(6)
+  service           VehicleService @relation(fields: [service_id], references: [id], onDelete: Cascade)
+  vehicle           Vehicle        @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
+  user              User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id],    map: "idx_invoices_user_id")
+  @@index([vehicle_id], map: "idx_invoices_vehicle_id")
+  @@map("invoices")
+}
+
+// ── Phase 6: Requests ─────────────────────────────────────────────────────────
+
+model Request {
+  id           String    @id @default(uuid())
+  type         String    @db.VarChar(50)  // vehicle_access | service_center_join | customer_invite | partner_invite
+  from_user_id String
+  to_user_id   String?
+  entity_type  String    @db.VarChar(50)  // vehicle | service_center
+  entity_id    String
+  role         String    @default("user") @db.VarChar(50)
+  status       String    @default("pending") @db.VarChar(50) // pending | accepted | rejected | cancelled
+  message      String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+  from_user    User      @relation("RequestsFrom", fields: [from_user_id], references: [id], onDelete: Cascade)
+  to_user      User?     @relation("RequestsTo",   fields: [to_user_id],   references: [id], onDelete: Cascade)
+  notifications Notification[]
+
+  @@index([from_user_id], map: "idx_requests_from_user")
+  @@index([to_user_id],   map: "idx_requests_to_user")
+  @@index([status],       map: "idx_requests_status")
+  @@map("requests")
+}
+
+// ── Phase 7: Notifications ───────────────────────────────────────────────────────
+
+model Notification {
+  id          String    @id @default(uuid())
+  user_id     String
+  type        String    @db.VarChar(50)  // request | service_due | booking_update | service_complete | invoice | system
+  title       String    @db.VarChar(255)
+  body        String
+  request_id  String?
+  entity_type String?   @db.VarChar(50)
+  entity_id   String?
+  is_read     Boolean   @default(false)
+  channel     String    @default("app") @db.VarChar(20)
+  sent_at     DateTime? @default(now()) @db.Timestamp(6)
+  read_at     DateTime? @db.Timestamp(6)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  request     Request?  @relation(fields: [request_id], references: [id], onDelete: SetNull)
+
+  @@index([user_id],          map: "idx_notifications_user_id")
+  @@index([sent_at(sort: Desc)], map: "idx_notifications_sent_at")
+  @@map("notifications")
 }

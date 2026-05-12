@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
 import { jwtService } from '../services/jwtService.js';
 import { emailService } from '../services/emailService.js';
 import { smsService } from '../services/smsService.js';
 import { v4 as uuidv4 } from 'uuid';
+import prisma from '../config/prisma.js';
 
-const prisma = new PrismaClient();
 
 // Store OTPs in memory (in production use Redis)
 const otpStore: Map<string, { otp: string; expiresAt: number }> = new Map();

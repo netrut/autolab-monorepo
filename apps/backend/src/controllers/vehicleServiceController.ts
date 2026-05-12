@@ -1,8 +1,9 @@
 import { Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth.middleware.js';
+import { createNotification } from '../services/notificationService.js';
+import prisma from '../config/prisma.js';
 
-const prisma = new PrismaClient();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -39,8 +40,20 @@ export const vehicleServiceController = {
       const { search, status } = req.query as Record<string, string>;
       const userId = req.user?.userId;
 
+      // Scope to vehicles mapped to this user in vehicle_user_map
+      let vehicleIds: string[] | undefined;
+      if (userId) {
+        const maps = await prisma.vehicleUserMap.findMany({
+          where: { user_id: userId },
+          select: { vehicle_id: true },
+        });
+        vehicleIds = maps.map(m => m.vehicle_id);
+      }
+
       const where: Prisma.VehicleWhereInput = { is_active: true };
-      if (userId) where.user_id = userId;
+      if (vehicleIds !== undefined) {
+        where.id = { in: vehicleIds };
+      }
       if (search) {
         where.OR = [
           { registration_number: { contains: search, mode: 'insensitive' } },
@@ -191,6 +204,18 @@ export const vehicleServiceController = {
         include: { items: true },
       });
 
+      // 7.8 — notify on service complete
+      if ((status ?? 'completed') === 'completed') {
+        await createNotification({
+          userId,
+          type: 'service_complete',
+          title: 'Service Record Completed',
+          body: `A service record has been completed for vehicle ${vehicle_id}.`,
+          entityType: 'service_record',
+          entityId: service.id,
+        });
+      }
+
       res.status(201).json(service);
     } catch (error) {
       console.error(error);
@@ -308,6 +333,30 @@ export const vehicleServiceController = {
       res.json({ services, total: services.length });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch upcoming services' });
+    }
+  },
+
+  // GET /api/vehicle-services/latest — most recent completed service record for the user
+  async getLatest(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      const where: Prisma.VehicleServiceWhereInput = { status: 'completed' };
+      if (userId) where.user_id = userId;
+
+      const service = await prisma.vehicleService.findFirst({
+        where,
+        orderBy: { service_date: 'desc' },
+        include: {
+          items: { orderBy: { created_at: 'asc' }, take: 4 },
+          vehicle: {
+            select: { brand: true, model: true, registration_number: true, vehicle_type: true },
+          },
+        },
+      });
+
+      res.json({ service: service ?? null });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch latest service' });
     }
   },
 };

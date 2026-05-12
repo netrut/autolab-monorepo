@@ -11,7 +11,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { env } from "./config/env.js";
-import { PrismaClient } from "@prisma/client";
+import prisma from "./config/prisma.js";
 
 // Import all route modules
 import authRoutes from "./routes/auth.routes.js";
@@ -21,12 +21,16 @@ import servicesRoutes from "./routes/services.routes.js";
 import vehiclesRoutes from "./routes/vehicles.routes.js";
 import serviceCentersRoutes from "./routes/serviceCenters.routes.js";
 import vehicleServiceRoutes from "./routes/vehicleService.routes.js";
+import optionsRoutes from "./routes/options.routes.js";
+import invoiceRoutes from "./routes/invoices.routes.js";
+import requestRoutes from "./routes/requests.routes.js";
+import notificationRoutes from "./routes/notifications.routes.js";
+import serviceCenterOnboardingRoutes from "./routes/serviceCenterOnboarding.routes.js";
 
 // Initialize Express app
 const app: any = express();
 
-// Initialize Prisma (database)
-const prisma = new PrismaClient();
+// Initialize Prisma (database) — singleton shared across all controllers
 
 (async function initDb() {
   try {
@@ -117,6 +121,11 @@ app.use("/api/services", servicesRoutes);
 app.use("/api/vehicles", vehiclesRoutes);
 app.use("/api/service-centers", serviceCentersRoutes);
 app.use("/api/vehicle-services", vehicleServiceRoutes);
+app.use("/api/options", optionsRoutes);
+app.use("/api/invoices", invoiceRoutes);
+app.use("/api/requests", requestRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/service-centers/onboard", serviceCenterOnboardingRoutes);
 
 app.use((req: any, res: any) => {
   res.status(404).json({

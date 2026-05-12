@@ -10,6 +10,7 @@ router.get('/catalogue', optionalAuthMiddleware, vehicleServiceController.getCat
 // Protected
 router.get('/vehicles', authMiddleware, vehicleServiceController.listVehiclesWithStatus);
 router.get('/upcoming', authMiddleware, vehicleServiceController.getUpcoming);
+router.get('/latest', authMiddleware, vehicleServiceController.getLatest);
 router.get('/record/:id', authMiddleware, vehicleServiceController.getServiceRecord);
 router.get('/:vehicleId', authMiddleware, vehicleServiceController.getServiceHistory);
 router.post('/', authMiddleware, vehicleServiceController.createService);

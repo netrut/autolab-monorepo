@@ -6,6 +6,7 @@ const router: express.Router = express.Router();
 
 router.use(optionalAuthMiddleware);
 
+router.get("/lookup", vehicleController.lookupByReg);
 router.get("/", vehicleController.list);
 router.get("/:id", vehicleController.getById);
 router.post("/", vehicleController.create);
