@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'core/providers/auth_provider.dart';
@@ -15,6 +16,9 @@ import 'shared/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Disable runtime HTTP font fetching — fonts must be bundled as assets.
+  // This fixes missing icons and Noto font warnings on Vercel web deployment.
+  GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const AutoLabApp());
 }
 

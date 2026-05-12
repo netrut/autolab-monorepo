@@ -151,5 +151,5 @@ flutter build web --release \
 
 cd /workspaces/autolab-monorepo/apps/flutter-app
 git add -f build/web
-git commit -m "Flutter-App Service Center Onboard"
+git commit -m "Flutter-App font downloaded"
 git push origin main
