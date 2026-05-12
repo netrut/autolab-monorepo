@@ -61,6 +61,9 @@ flutter:
           weight: 600
         - asset: assets/fonts/Poppins-Bold.ttf
           weight: 700
+        - asset: assets/fonts/Poppins-BoldItalic.ttf
+          weight: 700
+          style: italic
     - family: InterTight
       fonts:
         - asset: assets/fonts/InterTight-Regular.ttf
