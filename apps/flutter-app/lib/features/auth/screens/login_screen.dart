@@ -32,8 +32,74 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _showEmailNotVerifiedDialog(String email) {
+    showDialog(
+      context: context,
+      builder: (_) => _EmailNotVerifiedDialog(email: email),
+    );
+  }
+
+  void _showLoginErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.lock_outline_rounded,
+                  color: Color(0xFFFF5963), size: 28),
+            ),
+            const SizedBox(height: 16),
+            Text('Login Failed',
+                style: GoogleFonts.poppins(
+                    fontSize: 17, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Text(
+              'The email or password you entered is incorrect. Please try again or reset your password.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                  fontSize: 13, color: const Color(0xFF7A7A7A), height: 1.5),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Try Again',
+                style: GoogleFonts.poppins(color: const Color(0xFF7A7A7A))),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              context.push('/auth/forgot-password');
+            },
+            icon: const Icon(Icons.key_outlined, size: 16),
+            label: Text('Forgot Password',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, fontWeight: FontWeight.w600)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1B1F26),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handlePostLogin() async {
-    if (!mounted) return;
     final scProvider = context.read<ServiceCentreProvider>();
     final action = await scProvider.resolveAfterLogin();
     if (!mounted) return;
@@ -75,8 +141,12 @@ class _LoginScreenState extends State<LoginScreen> {
       if (ok) {
         await _handlePostLogin();
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(auth.error ?? 'Login failed')));
+        if (!mounted) return;
+        if (auth.emailNotVerified) {
+          _showEmailNotVerifiedDialog(auth.unverifiedEmail ?? _emailCtrl.text.trim());
+        } else {
+          _showLoginErrorDialog();
+        }
       }
     } else {
       // Phone → send OTP then navigate to OTP screen
@@ -361,6 +431,140 @@ class _CentrePickerSheetState extends State<_CentrePickerSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Email Not Verified Dialog ─────────────────────────────────────────────────
+
+class _EmailNotVerifiedDialog extends StatefulWidget {
+  final String email;
+  const _EmailNotVerifiedDialog({required this.email});
+
+  @override
+  State<_EmailNotVerifiedDialog> createState() =>
+      _EmailNotVerifiedDialogState();
+}
+
+class _EmailNotVerifiedDialogState extends State<_EmailNotVerifiedDialog> {
+  bool _sending = false;
+  bool _sent = false;
+
+  Future<void> _resend() async {
+    setState(() => _sending = true);
+    final ok =
+        await context.read<AuthProvider>().resendVerificationEmail(widget.email);
+    if (!mounted) return;
+    setState(() {
+      _sending = false;
+      _sent = ok;
+    });
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Verification email sent! Check your inbox.')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Failed to send. Please try again.')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3CD),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.mark_email_unread_outlined,
+                color: Color(0xFFB8860B), size: 30),
+          ),
+          const SizedBox(height: 16),
+          Text('Email Not Verified',
+              style: GoogleFonts.poppins(
+                  fontSize: 17, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Text(
+            'Your account is not yet verified. Please check your inbox for a verification email sent to:',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+                fontSize: 13, color: const Color(0xFF7A7A7A)),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              widget.email,
+              style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1B1F26)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_sent)
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F7EE),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline,
+                      color: Color(0xFF2F9E56), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Verification email sent!',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: const Color(0xFF2F9E56),
+                            fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Close',
+              style: GoogleFonts.poppins(color: const Color(0xFF7A7A7A))),
+        ),
+        ElevatedButton.icon(
+          onPressed: _sending ? null : _resend,
+          icon: _sending
+              ? const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.send_outlined, size: 16),
+          label: Text(_sent ? 'Resend Again' : 'Resend Email',
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w600)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1B1F26),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
     );
   }
 }

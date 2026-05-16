@@ -90,8 +90,34 @@ class _AppDrawerState extends State<AppDrawer> {
                 () => context.push('/profile')),
             const Spacer(),
             const Divider(),
-            _item(context, Icons.logout, 'Logout', () async {
-              await auth.logout();
+            _item(context, Icons.logout, 'Logout', () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  title: Text('Logout', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+                  content: Text('Are you sure you want to logout?', style: GoogleFonts.poppins(fontSize: 13)),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Cancel', style: GoogleFonts.poppins(color: const Color(0xFF7A7A7A))),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await auth.logout();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF5963),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Text('Logout', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              );
             }, color: Colors.red),
             const SizedBox(height: 8),
           ],

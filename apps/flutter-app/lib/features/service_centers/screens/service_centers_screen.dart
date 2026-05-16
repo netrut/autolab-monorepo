@@ -4,8 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/models/service_center_model.dart';
-import '../../../core/providers/request_provider.dart';
 import '../../../core/providers/service_centre_provider.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -53,16 +51,35 @@ class _ServiceCentersScreenState extends State<ServiceCentersScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
+      drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF3F3F3),
         elevation: 0,
         centerTitle: true,
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: Color(0xFF1B1F26)),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Text('My Service Centres',
             style: GoogleFonts.interTight(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF232323),
                 letterSpacing: 0.5)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.swap_horiz_outlined, color: Color(0xFF1B1F26), size: 22),
+            tooltip: 'Requests',
+            onPressed: () => context.push('/requests'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF1B1F26), size: 22),
+            tooltip: 'Notifications',
+            onPressed: () => context.push('/notifications'),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF1B1F26),
@@ -463,18 +480,35 @@ class _ServiceCentreCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // Edit
-                Expanded(
-                  child: _actionBtn(
-                    icon: Icons.edit_outlined,
-                    label: 'Edit',
-                    color: const Color(0xFFDA8A1D),
-                    bg: const Color(0xFFFFF0DE),
-                    onTap: () => context
-                        .push('/service-centers/edit/${centre.id}'),
+                // Team (for owners)
+                if (centre.role == 'owner') ...[
+                  Expanded(
+                    child: _actionBtn(
+                      icon: Icons.group_outlined,
+                      label: 'Team',
+                      color: const Color(0xFF2F9E56),
+                      bg: const Color(0xFFE8F7EE),
+                      onTap: () => context
+                          .push('/service-centers/${centre.id}/team?name=${Uri.encodeComponent(centre.name)}&owner=true'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
+                  const SizedBox(width: 8),
+                ],
+
+                // Edit (only for owners)
+                if (centre.role == 'owner') ...[
+                  Expanded(
+                    child: _actionBtn(
+                      icon: Icons.edit_outlined,
+                      label: 'Edit',
+                      color: const Color(0xFFDA8A1D),
+                      bg: const Color(0xFFFFF0DE),
+                      onTap: () => context
+                          .push('/service-centers/edit/${centre.id}'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
 
                 // More (Invite + Remove)
                 _moreBtn(context),

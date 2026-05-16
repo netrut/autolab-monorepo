@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/models/booking_model.dart';
 import '../../../core/models/vehicle_service_model.dart';
@@ -22,7 +23,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final scId = prefs.getString('service_center_id');
+      if (!mounted) return;
+      if (scId == null || scId.isEmpty) {
+        context.go('/service-centers/onboard');
+        return;
+      }
       context.read<BookingProvider>().fetchBookings();
     });
   }

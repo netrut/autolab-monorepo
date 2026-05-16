@@ -54,10 +54,12 @@ class ServiceCentreProvider extends ChangeNotifier {
   List<UserServiceCentre> _centres = [];
   UserServiceCentre? _current;
   bool _loading = false;
+  bool _initialized = false;
 
   List<UserServiceCentre> get centres => _centres;
   UserServiceCentre? get current => _current;
   bool get loading => _loading;
+  bool get initialized => _initialized;
   bool get hasMultiple => _centres.length > 1;
 
   final _api = ApiClient();
@@ -88,8 +90,10 @@ class ServiceCentreProvider extends ChangeNotifier {
       if (_current != null) {
         await prefs.setString(_keyServiceCenterId, _current!.id);
       }
+      _initialized = true;
     } catch (_) {
       // non-fatal — user may have no centres yet
+      // Do NOT set _initialized on error so router won't redirect prematurely
     } finally {
       _loading = false;
       notifyListeners();
@@ -109,6 +113,7 @@ class ServiceCentreProvider extends ChangeNotifier {
   void clear() {
     _centres = [];
     _current = null;
+    _initialized = false;
     notifyListeners();
   }
 
@@ -131,7 +136,11 @@ class ServiceCentreProvider extends ChangeNotifier {
     // Fetch all mapped centres
     await init();
 
-    if (_centres.isEmpty) return SetupAction.onboard;
+    if (_centres.isEmpty) {
+      _initialized = true; // confirmed empty from server
+      notifyListeners();
+      return SetupAction.onboard;
+    }
     if (_centres.length == 1) {
       await switchTo(_centres.first);
       return SetupAction.autoSet;

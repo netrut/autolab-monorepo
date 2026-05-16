@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/service_centre_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/otp_screen.dart';
@@ -19,23 +20,42 @@ import '../../features/service/screens/service_detail_screen.dart';
 import '../../features/service_centers/screens/service_centers_screen.dart';
 import '../../features/service_centers/screens/add_service_center_screen.dart';
 import '../../features/service_centers/screens/service_centre_gateway_screen.dart';
+import '../../features/service_centers/screens/team_members_screen.dart';
 import '../../features/invoice/screens/invoice_screen.dart';
 import '../../features/requests/screens/requests_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-GoRouter createRouter(AuthProvider authProvider) {
+GoRouter createRouter(AuthProvider authProvider, {ServiceCentreProvider? serviceCentreProvider}) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/home',
-    refreshListenable: authProvider,
+    refreshListenable: serviceCentreProvider != null
+        ? Listenable.merge([authProvider, serviceCentreProvider])
+        : authProvider,
     redirect: (context, state) {
       final isLoggedIn = authProvider.isLoggedIn;
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      final isOnboardRoute = state.matchedLocation == '/service-centers/onboard';
+      final isAddCentreRoute = state.matchedLocation == '/service-centers/add';
 
       if (!isLoggedIn && !isAuthRoute) return '/auth/login';
       if (isLoggedIn && isAuthRoute) return '/home';
+
+      // If logged in but no service centre mapped, redirect to gateway
+      // (skip if already on onboard/add/requests/notifications/profile routes)
+      if (isLoggedIn && serviceCentreProvider != null && !isOnboardRoute && !isAddCentreRoute) {
+        final isRequestsRoute = state.matchedLocation == '/requests';
+        final isNotificationsRoute = state.matchedLocation == '/notifications';
+        final isProfileRoute = state.matchedLocation == '/profile';
+        if (isRequestsRoute || isNotificationsRoute || isProfileRoute) return null;
+
+        if (serviceCentreProvider.initialized && serviceCentreProvider.centres.isEmpty) {
+          return '/service-centers/onboard';
+        }
+      }
+
       return null;
     },
     routes: [
@@ -138,6 +158,14 @@ GoRouter createRouter(AuthProvider authProvider) {
             path: 'edit/:centreId',
             builder: (_, state) => AddServiceCenterScreen(
               centreId: state.pathParameters['centreId'],
+            ),
+          ),
+          GoRoute(
+            path: ':centreId/team',
+            builder: (_, state) => TeamMembersScreen(
+              centreId: state.pathParameters['centreId']!,
+              centreName: state.uri.queryParameters['name'] ?? 'Service Centre',
+              isOwner: state.uri.queryParameters['owner'] == 'true',
             ),
           ),
           GoRoute(

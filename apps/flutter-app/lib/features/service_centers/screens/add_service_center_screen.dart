@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -81,6 +82,13 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
   final _panCtrl        = TextEditingController();
   final _shopRegCtrl    = TextEditingController();
 
+  // ── Invoice template controllers ──────────────────────────────────────────
+  final _invBizNameCtrl  = TextEditingController();
+  final _invLogoCtrl     = TextEditingController();
+  final _invFooterCtrl   = TextEditingController();
+  final _invGstCtrl      = TextEditingController();
+  final _invTermsCtrl    = TextEditingController();
+
   // ── Step 5 controllers ────────────────────────────────────────────────────
   final _ownerNameCtrl  = TextEditingController();
   final _ownerPhoneCtrl = TextEditingController();
@@ -134,6 +142,11 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
           _ownerEmailCtrl.text  = det['owner_email'] ?? '';
           _designationCtrl.text = det['designation'] ?? '';
           _aadhaarCtrl.text     = det['aadhaar_last4'] ?? '';
+          _invBizNameCtrl.text  = det['invoice_business_name'] ?? '';
+          _invLogoCtrl.text     = det['invoice_logo_url'] ?? '';
+          _invFooterCtrl.text   = det['invoice_footer'] ?? '';
+          _invGstCtrl.text      = det['invoice_gst_percent']?.toString() ?? '';
+          _invTermsCtrl.text    = det['invoice_terms'] ?? '';
         }
       });
     } catch (_) {}
@@ -148,6 +161,7 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
       _addressCtrl, _cityCtrl, _pincodeCtrl, _mapsCtrl,
       _hoursCtrl,
       _tradeNameCtrl, _bizTypeCtrl, _gstCtrl, _panCtrl, _shopRegCtrl,
+      _invBizNameCtrl, _invLogoCtrl, _invFooterCtrl, _invGstCtrl, _invTermsCtrl,
       _ownerNameCtrl, _ownerPhoneCtrl, _ownerEmailCtrl,
       _designationCtrl, _aadhaarCtrl,
     ]) { c.dispose(); }
@@ -188,7 +202,7 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
         _goTo(1);
       }
     } catch (e) {
-      _snack('Failed to save: $e');
+      _snack(_parseError(e));
     } finally {
       setState(() => _saving = false);
     }
@@ -207,8 +221,13 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
             '/api/service-centers/onboard/${_createdId!}/details', data: data);
       }
       _goTo(nextStep);
-    } catch (_) {
-      _goTo(nextStep); // non-fatal — skip silently
+    } catch (e) {
+      final msg = _parseError(e);
+      if (msg.contains('owner') || msg.contains('admin') || msg.contains('authorised')) {
+        _snack(msg);
+      } else {
+        _goTo(nextStep); // non-fatal for other errors — skip silently
+      }
     } finally {
       setState(() => _saving = false);
     }
@@ -240,10 +259,18 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
       if (!mounted) return;
       _showSuccessDialog();
     } catch (e) {
-      _snack('Submission failed: $e');
+      _snack('Submission failed. Please try again.');
     } finally {
       setState(() => _saving = false);
     }
+  }
+
+  String _parseError(dynamic e) {
+    if (e is DioException && e.response?.data is Map) {
+      final msg = (e.response!.data as Map)['error'];
+      if (msg is String && msg.isNotEmpty) return msg;
+    }
+    return 'Something went wrong. Please try again.';
   }
 
   void _snack(String msg) {
@@ -383,6 +410,11 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
               gstCtrl: _gstCtrl,
               panCtrl: _panCtrl,
               shopRegCtrl: _shopRegCtrl,
+              invBizNameCtrl: _invBizNameCtrl,
+              invLogoCtrl: _invLogoCtrl,
+              invFooterCtrl: _invFooterCtrl,
+              invGstCtrl: _invGstCtrl,
+              invTermsCtrl: _invTermsCtrl,
               saving: _saving,
               onSkip: () => _goTo(4),
               onNext: () => _saveStep({
@@ -396,6 +428,16 @@ class _AddServiceCenterScreenState extends State<AddServiceCenterScreen> {
                   'pan_number': _panCtrl.text.trim().toUpperCase(),
                 if (_shopRegCtrl.text.isNotEmpty)
                   'shop_reg_number': _shopRegCtrl.text.trim(),
+                if (_invBizNameCtrl.text.isNotEmpty)
+                  'invoice_business_name': _invBizNameCtrl.text.trim(),
+                if (_invLogoCtrl.text.isNotEmpty)
+                  'invoice_logo_url': _invLogoCtrl.text.trim(),
+                if (_invFooterCtrl.text.isNotEmpty)
+                  'invoice_footer': _invFooterCtrl.text.trim(),
+                if (_invGstCtrl.text.isNotEmpty)
+                  'invoice_gst_percent': _invGstCtrl.text.trim(),
+                if (_invTermsCtrl.text.isNotEmpty)
+                  'invoice_terms': _invTermsCtrl.text.trim(),
               }, 4),
             ),
             _Step5Owner(
@@ -998,6 +1040,8 @@ class _Step3Services extends StatelessWidget {
 class _Step4Business extends StatelessWidget {
   final TextEditingController tradeNameCtrl, bizTypeCtrl, gstCtrl,
       panCtrl, shopRegCtrl;
+  final TextEditingController invBizNameCtrl, invLogoCtrl, invFooterCtrl,
+      invGstCtrl, invTermsCtrl;
   final bool saving;
   final VoidCallback onSkip, onNext;
 
@@ -1007,6 +1051,11 @@ class _Step4Business extends StatelessWidget {
     required this.gstCtrl,
     required this.panCtrl,
     required this.shopRegCtrl,
+    required this.invBizNameCtrl,
+    required this.invLogoCtrl,
+    required this.invFooterCtrl,
+    required this.invGstCtrl,
+    required this.invTermsCtrl,
     required this.saving,
     required this.onSkip,
     required this.onNext,
@@ -1061,6 +1110,69 @@ class _Step4Business extends StatelessWidget {
           TextFormField(
             controller: shopRegCtrl,
             decoration: _inputDeco('Registration Number'),
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+
+          // ── Invoice Template Settings ──────────────────────────────────────
+          const SizedBox(height: 28),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F7FF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _kAccent.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.receipt_long_outlined, color: _kAccent, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Invoice Template Settings',
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kAccent)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          _sectionLabel('Business Name (on invoice)'),
+          TextFormField(
+            controller: invBizNameCtrl,
+            decoration: _inputDeco('Invoice Header Name',
+                hint: 'e.g. Friends Auto Service Pvt Ltd'),
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          const SizedBox(height: 14),
+          _sectionLabel('Logo URL'),
+          TextFormField(
+            controller: invLogoCtrl,
+            decoration: _inputDeco('Logo Image URL (optional)',
+                hint: 'https://...'),
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          const SizedBox(height: 14),
+          _sectionLabel('GST % (for invoice)'),
+          TextFormField(
+            controller: invGstCtrl,
+            keyboardType: TextInputType.number,
+            decoration: _inputDeco('GST Percentage', hint: '18'),
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          const SizedBox(height: 14),
+          _sectionLabel('Invoice Footer'),
+          TextFormField(
+            controller: invFooterCtrl,
+            maxLines: 2,
+            decoration: _inputDeco('Footer text',
+                hint: 'Thank you for your business!'),
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          const SizedBox(height: 14),
+          _sectionLabel('Terms & Conditions'),
+          TextFormField(
+            controller: invTermsCtrl,
+            maxLines: 3,
+            decoration: _inputDeco('Terms (optional)',
+                hint: 'Warranty valid for 30 days...'),
             style: GoogleFonts.poppins(fontSize: 14),
           ),
         ],

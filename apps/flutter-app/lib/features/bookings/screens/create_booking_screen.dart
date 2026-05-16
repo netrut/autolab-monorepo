@@ -123,7 +123,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
     });
     if (!mounted) return;
     if (ok) {
-      context.pop();
+      context.go('/bookings');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -25,12 +25,15 @@ class ServiceCentreGatewayScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
+      drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF3F3F3),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1B1F26)),
-          onPressed: () => context.pop(),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: Color(0xFF1B1F26)),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
         ),
         title: Text(
           'Service Centre',
@@ -41,6 +44,18 @@ class ServiceCentreGatewayScreen extends StatelessWidget {
               letterSpacing: 0.5),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.swap_horiz_outlined, color: Color(0xFF1B1F26), size: 22),
+            tooltip: 'Requests',
+            onPressed: () => context.push('/requests'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF1B1F26), size: 22),
+            tooltip: 'Notifications',
+            onPressed: () => context.push('/notifications'),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

@@ -57,18 +57,17 @@ class _AppRouterState extends State<_AppRouter> {
   void initState() {
     super.initState();
     final auth = context.read<AuthProvider>();
-    _router = createRouter(auth);
-    // Init service centre switcher after auth resolves
+    final scProvider = context.read<ServiceCentreProvider>();
+    _router = createRouter(auth, serviceCentreProvider: scProvider);
+    // Init service centre switcher only on app startup if already logged in.
+    // For fresh login/signup, the login/OTP screens handle this via resolveAfterLogin().
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (auth.isLoggedIn) {
-        context.read<ServiceCentreProvider>().init();
+        scProvider.init();
       }
-      // Re-init whenever login state changes
       auth.addListener(() {
-        if (auth.isLoggedIn) {
-          context.read<ServiceCentreProvider>().init();
-        } else {
-          context.read<ServiceCentreProvider>().clear();
+        if (!auth.isLoggedIn) {
+          scProvider.clear();
         }
       });
     });

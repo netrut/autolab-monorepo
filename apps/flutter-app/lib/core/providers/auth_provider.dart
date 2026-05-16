@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
 import '../models/user_model.dart';
@@ -9,11 +10,15 @@ class AuthProvider extends ChangeNotifier {
   UserModel? _user;
   bool _isLoading = false;
   String? _error;
+  bool _emailNotVerified = false;
+  String? _unverifiedEmail;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isLoggedIn => _user != null;
+  bool get emailNotVerified => _emailNotVerified;
+  String? get unverifiedEmail => _unverifiedEmail;
 
   static const _keyUserId = 'user_id';
   static const _keyServiceCenterId = 'service_center_id';
@@ -38,6 +43,8 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> loginWithEmail(String email, String password) async {
     _setLoading(true);
+    _emailNotVerified = false;
+    _unverifiedEmail = null;
     try {
       final res = await _api.post('/api/auth/login',
           data: {'email': email, 'password': password});
@@ -49,7 +56,18 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = _parseError(e);
+      // Detect 403 email_not_verified specifically
+      if (e is DioException &&
+          e.response?.statusCode == 403 &&
+          e.response?.data is Map &&
+          (e.response!.data as Map)['error'] == 'email_not_verified') {
+        _emailNotVerified = true;
+        _unverifiedEmail =
+            (e.response!.data as Map)['email'] as String? ?? email;
+        _error = 'email_not_verified';
+      } else {
+        _error = _parseError(e);
+      }
       notifyListeners();
       return false;
     } finally {
@@ -197,8 +215,21 @@ class AuthProvider extends ChangeNotifier {
 
   void clearError() {
     _error = null;
+    _emailNotVerified = false;
+    _unverifiedEmail = null;
     notifyListeners();
   }
+
+  // Resend verification email
+  Future<bool> resendVerificationEmail(String email) async {
+    try {
+      await _api.post('/api/auth/resend-verification', data: {'email': email});
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
 
   void _setLoading(bool v) {
     _isLoading = v;
