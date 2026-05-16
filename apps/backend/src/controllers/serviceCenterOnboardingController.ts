@@ -89,6 +89,7 @@ export const serviceCenterOnboardingController = {
         owner_name, owner_phone, owner_email, designation, aadhaar_last4,
         account_holder, bank_name, account_number_encrypted, ifsc_code, upi_id,
         documents,
+        invoice_business_name, invoice_logo_url, invoice_footer, invoice_gst_percent, invoice_terms,
       } = req.body;
 
       const details = await prisma.serviceCenterDetails.upsert({
@@ -100,6 +101,7 @@ export const serviceCenterOnboardingController = {
           owner_name, owner_phone, owner_email, designation, aadhaar_last4,
           account_holder, bank_name, account_number_encrypted, ifsc_code, upi_id,
           documents: documents ?? [],
+          invoice_business_name, invoice_logo_url, invoice_footer, invoice_gst_percent, invoice_terms,
         },
         update: {
           ...(trade_name !== undefined && { trade_name }),
@@ -124,6 +126,11 @@ export const serviceCenterOnboardingController = {
           ...(ifsc_code !== undefined && { ifsc_code }),
           ...(upi_id !== undefined && { upi_id }),
           ...(documents !== undefined && { documents }),
+          ...(invoice_business_name !== undefined && { invoice_business_name }),
+          ...(invoice_logo_url !== undefined && { invoice_logo_url }),
+          ...(invoice_footer !== undefined && { invoice_footer }),
+          ...(invoice_gst_percent !== undefined && { invoice_gst_percent: invoice_gst_percent ? parseFloat(invoice_gst_percent) : null }),
+          ...(invoice_terms !== undefined && { invoice_terms }),
           updated_at: new Date(),
         },
       });

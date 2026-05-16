@@ -19,7 +19,8 @@
       "@/*": ["src/*"]
     },
     "allowSyntheticDefaultImports": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src/**/*", "api/**/*"],
   "exclude": ["node_modules", "dist"]

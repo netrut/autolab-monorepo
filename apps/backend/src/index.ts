@@ -30,6 +30,10 @@ import serviceCenterOnboardingRoutes from "./routes/serviceCenterOnboarding.rout
 // Initialize Express app
 const app: any = express();
 
+// Trust the first proxy hop (Codespaces / Vercel reverse proxy)
+// Required so express-rate-limit reads the real client IP from X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Initialize Prisma (database) — singleton shared across all controllers
 
 (async function initDb() {

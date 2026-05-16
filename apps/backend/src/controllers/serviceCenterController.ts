@@ -68,6 +68,12 @@ export const serviceCenterController = {
       });
       if (!existing) return res.status(404).json({ error: "Service center not found" });
 
+      // Only owner or admin can update
+      const isOwner = existing.owner_user_id === req.user!.userId;
+      if (!isOwner && req.user!.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Only the owner or admin can edit this service centre' });
+      }
+
       const {
         name, phone, email, description, address, city, state, pincode,
         category, maps_link, latitude, longitude,
@@ -120,6 +126,69 @@ export const serviceCenterController = {
       res.json({ message: "Service center deactivated" });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete service center" });
+    }
+  },
+
+  // ── Members (Team) ──────────────────────────────────────────────────────
+
+  async listMembers(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const members = await prisma.serviceCenterUserMap.findMany({
+        where: { service_center_id: id },
+        include: { user: { select: { id: true, display_name: true, email: true, phone_number: true, avatar_url: true } } },
+        orderBy: { created_at: 'asc' },
+      });
+      res.json({ members });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch members' });
+    }
+  },
+
+  async updateMemberRole(req: AuthRequest, res: Response) {
+    try {
+      const { id, userId } = req.params;
+      const { role } = req.body;
+      const validRoles = ['owner', 'partner', 'mechanic', 'user'];
+      if (!role || !validRoles.includes(role)) {
+        return res.status(400).json({ error: `Role must be one of: ${validRoles.join(', ')}` });
+      }
+      // Only owner can change roles
+      const centre = await prisma.serviceCenter.findUnique({ where: { id } });
+      if (!centre) return res.status(404).json({ error: 'Service centre not found' });
+      if (centre.owner_user_id !== req.user!.userId) {
+        return res.status(403).json({ error: 'Only the owner can change member roles' });
+      }
+      const updated = await prisma.serviceCenterUserMap.updateMany({
+        where: { service_center_id: id, user_id: userId },
+        data: { role },
+      });
+      if (updated.count === 0) return res.status(404).json({ error: 'Member not found' });
+      res.json({ message: 'Role updated' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update member role' });
+    }
+  },
+
+  async removeMember(req: AuthRequest, res: Response) {
+    try {
+      const { id, userId } = req.params;
+      // Only owner can remove members
+      const centre = await prisma.serviceCenter.findUnique({ where: { id } });
+      if (!centre) return res.status(404).json({ error: 'Service centre not found' });
+      if (centre.owner_user_id !== req.user!.userId) {
+        return res.status(403).json({ error: 'Only the owner can remove members' });
+      }
+      // Cannot remove yourself (owner)
+      if (userId === req.user!.userId) {
+        return res.status(400).json({ error: 'Cannot remove yourself as owner' });
+      }
+      await prisma.serviceCenterUserMap.deleteMany({
+        where: { service_center_id: id, user_id: userId },
+      });
+      res.json({ message: 'Member removed' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to remove member' });
     }
   },
 };

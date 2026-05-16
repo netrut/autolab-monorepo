@@ -5,13 +5,7 @@ dotenv.config();
 const requiredEnvVars = [
   'DATABASE_URL',
   'JWT_SECRET',
-  'GMAIL_USER',
-  'GMAIL_PASS',
   'BRAVO_API_KEY',
-  'BRAVO_MCP_SERVER_API_KEY',
-  'HSP_SMS_USERNAME',
-  'HSP_SMS_API_KEY',
-  'HSP_SMS_SENDER',
 ];
 
 requiredEnvVars.forEach((envVar) => {
@@ -34,20 +28,17 @@ export const env = {
     expiry: process.env.JWT_EXPIRY || '7d',
   },
   email: {
-    gmail: {
-      user: process.env.GMAIL_USER!,
-      pass: process.env.GMAIL_PASS!,
-    },
-    bravo: {
+    brevo: {
       apiKey: process.env.BRAVO_API_KEY!,
-      mcpServerApiKey: process.env.BRAVO_MCP_SERVER_API_KEY!,
+      senderEmail: process.env.BREVO_SENDER_EMAIL || 'autolabstation@gmail.com',
+      senderName: process.env.BREVO_SENDER_NAME || 'AutoLab',
     },
   },
   sms: {
     hsp: {
-      username: process.env.HSP_SMS_USERNAME!,
-      apiKey: process.env.HSP_SMS_API_KEY!,
-      senderName: process.env.HSP_SMS_SENDER!,
+      username: process.env.HSP_SMS_USERNAME || '',
+      apiKey: process.env.HSP_SMS_API_KEY || '',
+      senderName: process.env.HSP_SMS_SENDER || 'AUTOLAB',
     },
   },
   redis: {
@@ -55,12 +46,12 @@ export const env = {
   },
   cors: {
     flutterApp: process.env.FLUTTER_APP_URL || 'com.autolab.app',
-    adminDashboard: process.env.ADMIN_DASHBOARD_URL || 'http://localhost:3001',
+    adminDashboard: process.env.DASHBOARD_URL || 'http://localhost:3001',
     production: process.env.PRODUCTION_URL || 'https://api.autolab.com',
   },
   firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID!,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY!,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+    projectId: process.env.FIREBASE_PROJECT_ID || '',
+    privateKey: process.env.FIREBASE_PRIVATE_KEY || '',
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
   },
 };

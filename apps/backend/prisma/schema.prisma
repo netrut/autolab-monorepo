@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ── EXISTING MODELS (unchanged) ───────────────────────────────────────────────
@@ -142,6 +143,12 @@ model ServiceCenterDetails {
   upi_id                    String?       @db.VarChar(100)
   // Documents JSONB
   documents                 Json          @default("[]")
+  // Invoice template settings
+  invoice_business_name     String?       @db.VarChar(255)
+  invoice_logo_url          String?       @db.VarChar(500)
+  invoice_footer            String?
+  invoice_gst_percent       Decimal?      @db.Decimal(5, 2)
+  invoice_terms             String?
   // Admin
   rejection_reason          String?
   verified_at               DateTime?     @db.Timestamp(6)

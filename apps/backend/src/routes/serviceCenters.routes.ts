@@ -10,7 +10,12 @@ router.get("/:id", serviceCenterController.getById);
 
 // Admin only — create/update/delete
 router.post("/", authMiddleware, adminMiddleware, serviceCenterController.create);
-router.put("/:id", authMiddleware, adminMiddleware, serviceCenterController.update);
+router.put("/:id", authMiddleware, serviceCenterController.update);
 router.delete("/:id", authMiddleware, adminMiddleware, serviceCenterController.remove);
+
+// Members (Team)
+router.get("/:id/members", authMiddleware, serviceCenterController.listMembers);
+router.put("/:id/members/:userId", authMiddleware, serviceCenterController.updateMemberRole);
+router.delete("/:id/members/:userId", authMiddleware, serviceCenterController.removeMember);
 
 export default router;

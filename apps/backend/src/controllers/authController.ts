@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs';
 import { jwtService } from '../services/jwtService.js';
 import { emailService } from '../services/emailService.js';
 import { smsService } from '../services/smsService.js';
+import { createNotification } from '../services/notificationService.js';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/prisma.js';
 
@@ -39,18 +40,28 @@ export const authController = {
         },
       });
 
-      // Send verification email
+      // Send verification email (non-fatal — app works even if email fails)
       const verificationToken = jwtService.generateEmailVerificationToken(email);
       const verificationLink = `${process.env.API_URL}/api/auth/verify-email?token=${verificationToken}`;
-
       try {
         await emailService.sendVerificationEmail(email, verificationLink);
+        console.log('[Auth] Verification email sent to', email);
       } catch (emailError) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Email verification skipped in development mode:', emailError);
-        } else {
-          throw emailError;
-        }
+        console.warn('[Auth] Email send failed (non-fatal):', (emailError as Error).message);
+        // Auto-activate user so they can login even without email verification
+        await prisma.user.update({ where: { id: user.id }, data: { is_active: true } });
+      }
+
+      // Send welcome notification
+      try {
+        await createNotification({
+          userId: user.id,
+          type: 'system',
+          title: 'Welcome to AutoLab! 🎉',
+          body: 'Get started by registering your service centre or joining an existing one to manage vehicle services.',
+        });
+      } catch (_) {
+        // non-fatal
       }
 
       // Return success
@@ -122,6 +133,18 @@ export const authController = {
             display_name: name,
           },
         });
+
+        // Send welcome notification for new user
+        try {
+          await createNotification({
+            userId: user.id,
+            type: 'system',
+            title: 'Welcome to AutoLab! 🎉',
+            body: 'Get started by registering your service centre or joining an existing one to manage vehicle services.',
+          });
+        } catch (_) {
+          // non-fatal
+        }
       }
 
       // Generate JWT
@@ -165,7 +188,9 @@ export const authController = {
 
       if (user.is_active === false) {
         return res.status(403).json({
-          error: 'Please verify your email before logging in.',
+          error: 'email_not_verified',
+          message: 'Please verify your email before logging in.',
+          email: user.email,
         });
       }
 
@@ -236,9 +261,7 @@ export const authController = {
     try {
       const { email } = req.body;
 
-      const user = await prisma.user.findUnique({
-        where: { email },
-      });
+      const user = await prisma.user.findUnique({ where: { email } });
 
       if (!user) {
         // Don't reveal if user exists
@@ -249,12 +272,19 @@ export const authController = {
       const resetToken = jwtService.generatePasswordResetToken(email);
       const resetLink = `${process.env.FLUTTER_APP_URL}/?reset=${resetToken}`;
 
-      // Send email
-      await emailService.sendPasswordResetEmail(email, resetLink);
+      try {
+        await emailService.sendPasswordResetEmail(email, resetLink);
+        console.log('[Auth] Password reset email sent to', email);
+      } catch (emailError) {
+        console.warn('[Auth] Password reset email failed (non-fatal):', (emailError as Error).message);
+        // Still return success — log the reset link for manual use in dev
+        console.log('[Auth] Reset link (manual):', resetLink);
+      }
 
-      res.json({ message: 'Password reset link sent to email' });
+      res.json({ message: 'If user exists, reset link sent to email' });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to send reset link' });
+      console.error('Forgot password error:', error);
+      res.status(500).json({ error: 'Failed to process request' });
     }
   },
 
@@ -284,6 +314,95 @@ export const authController = {
       res.json({ message: 'Password reset successfully' });
     } catch (error) {
       res.status(400).json({ error: 'Password reset failed' });
+    }
+  },
+
+  // Resend verification email
+  async resendVerification(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ error: 'Email is required' });
+
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) return res.json({ message: 'If user exists, verification email sent' });
+      if (user.is_active) return res.json({ message: 'Email already verified' });
+
+      const verificationToken = jwtService.generateEmailVerificationToken(email);
+      const verificationLink = `${process.env.API_URL}/api/auth/verify-email?token=${verificationToken}`;
+
+      try {
+        await emailService.sendVerificationEmail(email, verificationLink);
+        console.log('[Auth] Resent verification email to', email);
+      } catch (emailError) {
+        console.warn('[Auth] Resend email failed:', (emailError as Error).message);
+        // Auto-activate as fallback when email service is down
+        await prisma.user.update({ where: { id: user.id }, data: { is_active: true } });
+        return res.json({ message: 'Email service unavailable. Your account has been activated. Please login.' });
+      }
+
+      res.json({ message: 'Verification email sent. Please check your inbox.' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to resend verification email' });
+    }
+  },
+
+  // Change password (authenticated)
+  async changePassword(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.userId;
+      const { current_password, new_password } = req.body;
+
+      if (!current_password || !new_password) {
+        return res.status(400).json({ error: 'Current and new password are required' });
+      }
+      if (new_password.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters' });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user?.password_hash) {
+        return res.status(400).json({ error: 'No password set for this account' });
+      }
+
+      const valid = await bcryptjs.compare(current_password, user.password_hash);
+      if (!valid) {
+        return res.status(400).json({ error: 'Current password is incorrect' });
+      }
+
+      const hash = await bcryptjs.hash(new_password, 10);
+      await prisma.user.update({ where: { id: userId }, data: { password_hash: hash } });
+
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to change password' });
+    }
+  },
+
+  // Delete account (soft-delete)
+  async deleteAccount(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.userId;
+      const { password } = req.body;
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      // Verify password if user has one
+      if (user.password_hash) {
+        if (!password) return res.status(400).json({ error: 'Password is required to delete account' });
+        const valid = await bcryptjs.compare(password, user.password_hash);
+        if (!valid) return res.status(400).json({ error: 'Incorrect password' });
+      }
+
+      // Soft delete
+      await prisma.user.update({
+        where: { id: userId },
+        data: { is_active: false, updated_at: new Date() },
+      });
+
+      res.json({ message: 'Account scheduled for deletion' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete account' });
     }
   },
 };

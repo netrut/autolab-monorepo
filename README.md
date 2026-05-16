@@ -68,3 +68,7 @@ The Amazon Q Language Server server crashed 5 times in the last 3 minutes. The s
 
 -----
 
+kill backend command is below
+
+lsof -ti:3002 | xargs kill -9 2>/dev/null;
+
