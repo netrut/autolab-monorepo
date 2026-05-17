@@ -1,0 +1,11 @@
+{
+  "name": "AutoLab Customer",
+  "short_name": "AutoLab",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F5F7FA",
+  "theme_color": "#1B1F26",
+  "description": "Vehicle Service Tracking App for Customers",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
