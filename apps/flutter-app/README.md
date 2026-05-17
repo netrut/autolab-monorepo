@@ -164,4 +164,14 @@ Development Command: Off
 
 Root Directory: apps/flutter-app
 
+======================================================
 
+Build APK Commands (Android SDK is not installed in this Codespace)
+Flutter App (Service Centre)
+
+cd /workspaces/autolab-monorepo/apps/flutter-app && \
+export PATH="$PATH:/home/node/flutter-sdk/flutter/bin" && \
+flutter build apk --debug \
+ --dart-define=API_URL=https://autolab-api.vercel.app
+
+APK location: apps/flutter-app/build/app/outputs/flutter-apk/app-debug.apk

@@ -33,7 +33,7 @@ const app: any = express();
 
 // Trust the first proxy hop (Codespaces / Vercel reverse proxy)
 // Required so express-rate-limit reads the real client IP from X-Forwarded-For
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // Initialize Prisma (database) — singleton shared across all controllers
 
@@ -68,6 +68,7 @@ const allowedOrigins = [
   "http://localhost:3001",
   "https://autolab-dashboard.vercel.app",
   "https://autolab-app.vercel.app",
+  "https://autolab-partner-app.vercel.app/",
   "https://zany-xylophone-6qwx9w6g9rc5g9x-8080.app.github.dev",
   "https://zany-xylophone-6qwx9w6g9rc5g9x-8081.app.github.dev",
   "https://zany-xylophone-6qwx9w6g9rc5g9x-3002.app.github.dev",
