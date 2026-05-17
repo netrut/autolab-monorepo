@@ -26,6 +26,7 @@ import invoiceRoutes from "./routes/invoices.routes.js";
 import requestRoutes from "./routes/requests.routes.js";
 import notificationRoutes from "./routes/notifications.routes.js";
 import serviceCenterOnboardingRoutes from "./routes/serviceCenterOnboarding.routes.js";
+import userPreferencesRoutes from "./routes/userPreferences.routes.js";
 
 // Initialize Express app
 const app: any = express();
@@ -130,6 +131,7 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/service-centers/onboard", serviceCenterOnboardingRoutes);
+app.use("/api/user-preferences", userPreferencesRoutes);
 
 app.use((req: any, res: any) => {
   res.status(404).json({

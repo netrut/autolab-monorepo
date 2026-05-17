@@ -37,6 +37,7 @@ model User {
   requests_received       Request[] @relation("RequestsTo")
   notifications           Notification[]
   owned_service_centers   ServiceCenter[] @relation("ServiceCenterOwner")
+  user_preferences        UserPreference?
 
   @@index([email], map: "idx_users_email")
   @@map("users")
@@ -263,6 +264,24 @@ model Option {
   updated_at DateTime @default(now()) @updatedAt @db.Timestamp(6)
 
   @@map("options")
+}
+
+model UserPreference {
+  id                      String   @id @default(uuid())
+  user_id                 String   @unique
+  notify_service_reminder Boolean  @default(true)
+  notify_booking_updates  Boolean  @default(true)
+  notify_parts_expiry     Boolean  @default(true)
+  notify_join_requests    Boolean  @default(true)
+  reminder_days_before    Int      @default(7)
+  default_vehicle_type    String?  @db.VarChar(20)
+  dark_mode               Boolean  @default(false)
+  created_at              DateTime @default(now()) @db.Timestamp(6)
+  updated_at              DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }
 
 // ── NEW MODELS (vehicle service core feature) ─────────────────────────────────
