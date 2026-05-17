@@ -153,3 +153,15 @@ cd /workspaces/autolab-monorepo/apps/flutter-app
 git add -f build/web
 git commit -m "Web app update with setting screen"
 git push origin main
+
+## Vercel configration:
+
+Framework Preset: Other
+Build Command: flutter build web --release --dart-define=API_URL=https://autolab-api.vercel.app
+Output Directory: build/web
+Install Command: Off
+Development Command: Off
+
+Root Directory: apps/flutter-app
+
+
