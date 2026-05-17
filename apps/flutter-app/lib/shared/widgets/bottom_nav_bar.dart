@@ -9,15 +9,9 @@ class AppBottomNavBar extends StatelessWidget {
 
   static const _items = [
     _NavItem(icon: Icons.home_outlined, label: 'Home', route: '/home'),
-    _NavItem(
-        icon: Icons.directions_car_outlined,
-        label: 'Vehicles',
-        route: '/vehicles'),
-    _NavItem(
-        icon: Icons.calendar_today_outlined,
-        label: 'Bookings',
-        route: '/bookings'),
+    _NavItem(icon: Icons.calendar_today_outlined, label: 'Bookings', route: '/bookings'),
     _NavItem(icon: Icons.build_outlined, label: 'Services', route: '/services'),
+    _NavItem(icon: Icons.settings_outlined, label: 'Settings', route: '/settings'),
   ];
 
   @override

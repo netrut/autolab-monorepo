@@ -141,7 +141,7 @@ class _ServiceScreenState extends State<ServiceScreen> {
           onPressed: () => context.push('/vehicles/add'),
           child: const Icon(Icons.add, color: Colors.white),
         ),
-        bottomNavigationBar: const AppBottomNavBar(currentIndex: 3),
+        bottomNavigationBar: const AppBottomNavBar(currentIndex: 2),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),

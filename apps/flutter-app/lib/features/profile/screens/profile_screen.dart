@@ -102,7 +102,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   : Text('Save',
                       style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF2F7DE1))),
+                          color: const Color(0xFF1F4FD8))),
             ),
         ],
       ),
@@ -118,65 +118,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF2F7DE1), Color(0xFF1F4FA8)],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
                         boxShadow: const [
                           BoxShadow(
-                              blurRadius: 15,
-                              color: Color(0x1F2F7DE1),
-                              offset: Offset(0, 6))
+                              blurRadius: 8,
+                              color: Color(0x08000000),
+                              offset: Offset(0, 2))
                         ],
                       ),
                       padding: const EdgeInsets.all(20),
                       child: Row(
                         children: [
                           Container(
-                            width: 70,
-                            height: 70,
+                            width: 72,
+                            height: 72,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: const Color(0xFF111827),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                  color: Colors.white.withOpacity(0.4),
-                                  width: 2),
                             ),
-                            child: const Icon(Icons.person,
-                                color: Colors.white, size: 40),
+                            child: const Icon(Icons.person_outline,
+                                color: Colors.white, size: 38),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Welcome Back!',
+                                Text('Welcome Back',
                                     style: GoogleFonts.poppins(
                                         fontSize: 12,
-                                        color:
-                                            Colors.white.withOpacity(0.8))),
+                                        color: const Color(0xFF6B7280))),
                                 const SizedBox(height: 4),
                                 Text(user?.displayName ?? 'User',
                                     style: GoogleFonts.poppins(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w700,
-                                        color: Colors.white)),
-                                const SizedBox(height: 4),
+                                        color: const Color(0xFF111827))),
+                                const SizedBox(height: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                      horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: const Color(0xFFF3F4F6),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFFE5E7EB)),
                                   ),
                                   child: Text(
                                     user?.roleLabel ?? 'User',
                                     style: GoogleFonts.poppins(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.white),
+                                        color: const Color(0xFF374151)),
                                   ),
                                 ),
                               ],
@@ -364,7 +358,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF2F7DE1).withOpacity(0.4)),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(

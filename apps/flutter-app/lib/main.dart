@@ -11,6 +11,7 @@ import 'core/providers/options_provider.dart';
 import 'core/providers/request_provider.dart';
 import 'core/providers/notification_provider.dart';
 import 'core/providers/service_centre_provider.dart';
+import 'features/settings/providers/settings_provider.dart';
 import 'core/utils/router.dart';
 import 'shared/theme/app_theme.dart';
 
@@ -37,6 +38,7 @@ class AutoLabApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RequestProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ServiceCentreProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: const _AppRouter(),
     );

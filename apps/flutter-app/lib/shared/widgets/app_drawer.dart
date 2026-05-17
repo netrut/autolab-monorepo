@@ -86,6 +86,8 @@ class _AppDrawerState extends State<AppDrawer> {
             if (user == null || user.canManageService)
               _item(context, Icons.group_add_outlined, 'Join Service Centre',
                   () => context.push('/service-centers/onboard')),
+            _item(context, Icons.settings_outlined, 'Settings',
+                () => context.push('/settings')),
             _item(context, Icons.person_outline, 'Profile',
                 () => context.push('/profile')),
             const Spacer(),

@@ -303,7 +303,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                   color: const Color(0xFF1F1F1F),
                   letterSpacing: 0.8)),
         ),
-        bottomNavigationBar: const AppBottomNavBar(currentIndex: 3),
+        bottomNavigationBar: const AppBottomNavBar(currentIndex: 2),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),

@@ -41,7 +41,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('MY BOOKINGS')),
-      bottomNavigationBar: const AppBottomNavBar(currentIndex: 2),
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF1B1F26),
         onPressed: () => context.push('/bookings/create'),

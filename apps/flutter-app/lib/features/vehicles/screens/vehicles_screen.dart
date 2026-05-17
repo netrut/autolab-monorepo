@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../../../core/providers/vehicle_provider.dart';
 import '../../../shared/widgets/app_drawer.dart';
-import '../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/vehicle_card.dart';
 
@@ -72,7 +71,6 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
               letterSpacing: 1.0),
         ),
       ),
-      bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF1B1F26),
         onPressed: () => context.push('/vehicles/add'),

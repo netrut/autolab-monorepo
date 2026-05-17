@@ -24,6 +24,7 @@ import '../../features/service_centers/screens/team_members_screen.dart';
 import '../../features/invoice/screens/invoice_screen.dart';
 import '../../features/requests/screens/requests_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -49,7 +50,8 @@ GoRouter createRouter(AuthProvider authProvider, {ServiceCentreProvider? service
         final isRequestsRoute = state.matchedLocation == '/requests';
         final isNotificationsRoute = state.matchedLocation == '/notifications';
         final isProfileRoute = state.matchedLocation == '/profile';
-        if (isRequestsRoute || isNotificationsRoute || isProfileRoute) return null;
+        final isSettingsRoute = state.matchedLocation == '/settings';
+        if (isRequestsRoute || isNotificationsRoute || isProfileRoute || isSettingsRoute) return null;
 
         if (serviceCentreProvider.initialized && serviceCentreProvider.centres.isEmpty) {
           return '/service-centers/onboard';
@@ -187,6 +189,10 @@ GoRouter createRouter(AuthProvider authProvider, {ServiceCentreProvider? service
       GoRoute(
         path: '/notifications',
         builder: (_, __) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (_, __) => const SettingsScreen(),
       ),
     ],
   );
