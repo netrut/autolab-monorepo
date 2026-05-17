@@ -119,4 +119,19 @@ export const invoiceController = {
       res.status(500).json({ error: 'Failed to fetch invoice' });
     }
   },
+
+  // GET /api/invoices/my — list all invoices for the current user's vehicles
+  async listMy(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.userId;
+      const invoices = await prisma.invoice.findMany({
+        where: { user_id: userId },
+        include: INVOICE_INCLUDE,
+        orderBy: { created_at: 'desc' },
+      });
+      res.json({ invoices });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch invoices' });
+    }
+  },
 };

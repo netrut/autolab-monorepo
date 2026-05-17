@@ -151,5 +151,5 @@ flutter build web --release \
 
 cd /workspaces/autolab-monorepo/apps/flutter-app
 git add -f build/web
-git commit -m "Bug fix & profile & centre screen improve"
+git commit -m "Web app update with setting screen"
 git push origin main

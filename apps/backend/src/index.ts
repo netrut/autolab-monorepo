@@ -69,6 +69,7 @@ const allowedOrigins = [
   "https://autolab-dashboard.vercel.app",
   "https://autolab-app.vercel.app",
   "https://zany-xylophone-6qwx9w6g9rc5g9x-8080.app.github.dev",
+  "https://zany-xylophone-6qwx9w6g9rc5g9x-8081.app.github.dev",
   "https://zany-xylophone-6qwx9w6g9rc5g9x-3002.app.github.dev",
 ].filter(Boolean) as string[];
 

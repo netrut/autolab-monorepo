@@ -6,6 +6,7 @@ const router: express.Router = express.Router();
 
 router.use(authMiddleware);
 
+router.get('/my', invoiceController.listMy);
 router.post('/', invoiceController.create);
 router.get('/service/:serviceId', invoiceController.getByServiceId);
 router.get('/:id', invoiceController.getById);
