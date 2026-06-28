@@ -79,7 +79,7 @@ export const serviceCenterController = {
         category, maps_link, latitude, longitude,
         vehicle_types, service_types, brands_serviced,
         working_hours, accepts_bookings, onboarding_status,
-        ...rest
+        is_verified, is_active
       } = req.body;
 
       const center = await prisma.serviceCenter.update({
@@ -103,6 +103,8 @@ export const serviceCenterController = {
           ...(working_hours !== undefined && { working_hours }),
           ...(accepts_bookings !== undefined && { accepts_bookings }),
           ...(onboarding_status !== undefined && { onboarding_status }),
+          ...(is_verified !== undefined && { is_verified }),
+          ...(is_active !== undefined && { is_active }),
           updated_at: new Date(),
         },
       });

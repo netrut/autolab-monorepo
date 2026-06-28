@@ -84,6 +84,20 @@ app.use(
   }),
 );
 
+// Print Log every API request so terminal output shows the exact hit and payload details.
+app.use("/api", (req: any, res: any, next: any) => {
+  console.log("[API REQUEST]", {
+    method: req.method,
+    originalUrl: req.originalUrl,
+    path: req.path,
+    query: req.query,
+    params: req.params,
+    body: req.body,
+    ip: req.ip,
+  });
+  next();
+});
+
 // Rate limiters
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

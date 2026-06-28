@@ -13,7 +13,8 @@ export const vehicleController = {
       const skip = (pageNum - 1) * limitNum;
 
       // Scope to vehicles mapped to this user in vehicle_user_map
-      const userId = req.user?.userId;
+      // ADMIN role (admin dashboard) bypasses user scoping and sees all vehicles
+      const userId = req.user?.role !== 'ADMIN' ? req.user?.userId : undefined;
       let vehicleIds: string[] | undefined;
       if (userId) {
         const maps = await prisma.vehicleUserMap.findMany({

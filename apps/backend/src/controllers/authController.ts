@@ -11,11 +11,34 @@ import prisma from '../config/prisma.js';
 // Store OTPs in memory (in production use Redis)
 const otpStore: Map<string, { otp: string; expiresAt: number }> = new Map();
 
+const ROLE_SERVICE_CENTER_OWNER = 2;
+const ROLE_CUSTOMER = 3;
+
+function normalizeRoleId(roleId: unknown): number {
+  const parsed = Number(roleId);
+  return Number.isFinite(parsed) ? parsed : ROLE_CUSTOMER;
+}
+
+function getWelcomeNotification(roleId: number) {
+  if (roleId === ROLE_SERVICE_CENTER_OWNER) {
+    return {
+      title: 'Welcome to AutoLab! 🎉',
+      body: 'Your service centre account is ready. Complete your profile, add your services, and start receiving bookings.',
+    };
+  }
+
+  return {
+    title: 'Welcome to AutoLab! 🎉',
+    body: 'Get the right service from the right service centre, book with confidence, and manage your vehicle services easily.',
+  };
+}
+
 export const authController = {
   // User registration
   async register(req: Request, res: Response) {
     try {
-      const { email, phone, password, name } = req.body;
+      const { email, phone, password, name, role_id } = req.body;
+      const resolvedRoleId = normalizeRoleId(role_id);
 
       // Check if user exists
       const existingUser = await prisma.user.findFirst({
@@ -36,6 +59,7 @@ export const authController = {
           phone_number: phone,
           password_hash: hashedPassword,
           display_name: name,
+          role_id: resolvedRoleId,
           is_active: false,
         },
       });
@@ -54,11 +78,12 @@ export const authController = {
 
       // Send welcome notification
       try {
+        const welcomeNotification = getWelcomeNotification(resolvedRoleId);
         await createNotification({
           userId: user.id,
           type: 'system',
-          title: 'Welcome to AutoLab! 🎉',
-          body: 'Get started by registering your service centre or joining an existing one to manage vehicle services.',
+          title: welcomeNotification.title,
+          body: welcomeNotification.body,
         });
       } catch (_) {
         // non-fatal
@@ -103,7 +128,8 @@ export const authController = {
   // Verify OTP
   async verifyOTP(req: Request, res: Response) {
     try {
-      const { phone, otp, name, email, password } = req.body;
+      const { phone, otp, name, email, password, role_id } = req.body;
+      const resolvedRoleId = normalizeRoleId(role_id);
 
       // Get stored OTP
       const storedOTP = otpStore.get(phone);
@@ -131,16 +157,18 @@ export const authController = {
             phone_number: phone,
             password_hash: hashedPassword,
             display_name: name,
+            role_id: resolvedRoleId,
           },
         });
 
         // Send welcome notification for new user
         try {
+          const welcomeNotification = getWelcomeNotification(resolvedRoleId);
           await createNotification({
             userId: user.id,
             type: 'system',
-            title: 'Welcome to AutoLab! 🎉',
-            body: 'Get started by registering your service centre or joining an existing one to manage vehicle services.',
+            title: welcomeNotification.title,
+            body: welcomeNotification.body,
           });
         } catch (_) {
           // non-fatal
