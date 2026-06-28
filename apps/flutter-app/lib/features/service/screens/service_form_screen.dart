@@ -157,10 +157,14 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
 
     if (!mounted) return;
     if (result != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Service ${status == 'draft' ? 'saved as draft' : 'completed'}!')),
-      );
-      context.pop();
+      if (status == 'completed') {
+        context.pushReplacement('/service/detail/${result.id}');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Service saved as draft!')),
+        );
+        context.pop();
+      }
     } else if (provider.saveError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(provider.saveError!), backgroundColor: Colors.red),
@@ -171,6 +175,155 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
   // ── Date picker ─────────────────────────────────────────────────────────────
 
   // ── Generate Invoice (5.7) ──────────────────────────────────────────────────
+
+  Future<void> _showCompletionDialog() async {
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFFFFF), Color(0xFFF7FAFF)],
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2F7DE1), Color(0xFF7BAAF7)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF2F7DE1).withOpacity(0.18),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.check_circle_outline, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Service Completed',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1F1F1F),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Your service record has been saved successfully.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                color: Colors.grey[700],
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEAF2FF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFD7E6FF)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.receipt_long_outlined, color: Color(0xFF2F7DE1), size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Generate an invoice now or return to the previous screen.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              color: const Color(0xFF2459A6),
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                            context.pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF1F1F1F),
+                            side: const BorderSide(color: Color(0xFFD9D9D9)),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: Text(
+                            'Back',
+                            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () async {
+                            Navigator.of(dialogContext).pop();
+                            await _generateInvoice();
+                          },
+                          icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                          label: Text(
+                            'Generate Invoice',
+                            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF2F7DE1),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> _generateInvoice() async {
     final serviceId = _existingRecord?.id ?? widget.serviceId;
@@ -487,23 +640,6 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
               _buildCostSection(),
               const SizedBox(height: 12),
 
-              // 5.7 — Generate Invoice (wired)
-              OutlinedButton.icon(
-                onPressed: _generateInvoice,
-                icon: const Icon(Icons.receipt_long_outlined, size: 18),
-                label: Text('Generate Invoice',
-                    style: GoogleFonts.poppins(
-                        fontSize: 13, fontWeight: FontWeight.w600)),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF2F7DE1),
-                  side: const BorderSide(color: Color(0xFF2F7DE1)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 20),
-
               // Notes
               TextFormField(
                 controller: _notesCtrl,
@@ -539,6 +675,23 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                 ],
               ),
               const SizedBox(height: 32),
+
+              // 5.7 — Generate Invoice (wired)
+              // OutlinedButton.icon(
+              //   onPressed: _generateInvoice,
+              //   icon: const Icon(Icons.receipt_long_outlined, size: 18),
+              //   label: Text('Generate Invoice',
+              //       style: GoogleFonts.poppins(
+              //           fontSize: 13, fontWeight: FontWeight.w600)),
+              //   style: OutlinedButton.styleFrom(
+              //     foregroundColor: const Color(0xFF2F7DE1),
+              //     side: const BorderSide(color: Color(0xFF2F7DE1)),
+              //     padding: const EdgeInsets.symmetric(vertical: 12),
+              //     shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(10)),
+              //   ),
+              // ),
+              // const SizedBox(height: 20),
             ],
           ),
         ),

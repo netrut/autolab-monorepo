@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/api/api_client.dart';
 import '../../../core/models/vehicle_service_model.dart';
+import '../../../core/providers/options_provider.dart';
 import '../../../core/providers/vehicle_service_provider.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
@@ -29,6 +31,23 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   Future<void> _load() async {
     final record = await context.read<VehicleServiceProvider>().fetchServiceRecord(widget.serviceId);
     if (mounted) setState(() { _service = record; _loading = false; });
+  }
+
+  Future<void> _generateInvoice() async {
+    try {
+      final options = context.read<OptionsProvider>();
+      await ApiClient().post('/api/invoices', data: {
+        'service_id': widget.serviceId,
+        'footer_text': options.invoiceFooterText,
+      });
+      if (!mounted) return;
+      context.push('/invoice/${widget.serviceId}');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate invoice: $e')),
+      );
+    }
   }
 
   Future<void> _delete() async {
@@ -183,6 +202,18 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             const SizedBox(height: 8),
             _card([Text(s.notes!, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[700]))]),
           ],
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _generateInvoice,
+            icon: const Icon(Icons.receipt_long_outlined, size: 18),
+            label: Text('Generate Invoice', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF2F7DE1),
+              side: const BorderSide(color: Color(0xFF2F7DE1)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
           const SizedBox(height: 32),
         ],
       ),
