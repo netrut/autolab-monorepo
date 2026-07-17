@@ -70,6 +70,11 @@ export const vehicleServiceController = {
             select: { service_date: true, next_service_date: true },
             orderBy: { service_date: 'desc' },
           },
+          vehicle_user_map: {
+            where: { role: 'owner' },
+            take: 1,
+            include: { user: { select: { display_name: true, phone_number: true } } },
+          },
         },
       });
 
@@ -96,6 +101,8 @@ export const vehicleServiceController = {
           last_service_date: latest?.service_date ?? null,
           next_service_date: latest?.next_service_date ?? null,
           total_services: v.vehicle_services.length,
+          owner_name: v.vehicle_user_map[0]?.user?.display_name ?? null,
+          owner_phone: v.vehicle_user_map[0]?.user?.phone_number ?? null,
         };
       });
 
