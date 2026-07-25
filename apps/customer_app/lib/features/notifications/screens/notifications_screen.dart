@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import '../../../core/providers/notification_provider.dart';
 import '../../../core/models/notification_model.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/app_back_button.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -30,6 +30,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Notifications'),
+        leading: const AppBackButton(),
         actions: [
           if (provider.unreadCount > 0)
             TextButton(
@@ -38,7 +39,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: const AppBottomNavBar(currentIndex: 3),
+
       body: provider.loading
           ? const Center(child: CircularProgressIndicator())
           : provider.notifications.isEmpty

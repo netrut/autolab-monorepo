@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: svc.dueCount > 0
                           ? '${svc.dueCount} Service${svc.dueCount == 1 ? '' : 's'} Pending'
                           : 'All up to date',
-                      onTap: () => context.push('/services'),
+                      onTap: () => context.push('/services?status=due'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: svc.nextServiceDate != null
                           ? _formatDate(svc.nextServiceDate!)
                           : 'Not scheduled',
-                      onTap: () => context.push('/services'),
+                      onTap: () => context.push('/services?status=upcoming'),
                     ),
                   ),
                 ],

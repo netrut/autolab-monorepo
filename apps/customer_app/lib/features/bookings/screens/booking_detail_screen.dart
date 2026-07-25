@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/providers/booking_provider.dart';
 import '../../../core/models/booking_model.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/status_badge.dart';
 
 class BookingDetailScreen extends StatelessWidget {
@@ -17,7 +18,7 @@ class BookingDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Booking Details')),
+      appBar: AppBar(title: const Text('Booking Details'), leading: const AppBackButton()),
       body: booking == null
           ? const Center(child: Text('Booking not found'))
           : SingleChildScrollView(

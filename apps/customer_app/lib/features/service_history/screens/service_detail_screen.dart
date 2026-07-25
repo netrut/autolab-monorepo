@@ -6,6 +6,7 @@ import '../../../core/providers/vehicle_service_provider.dart';
 import '../../../core/models/vehicle_service_model.dart';
 import '../../../core/api/api_client.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_back_button.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final String serviceId;
@@ -34,7 +35,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Service Detail')),
+      appBar: AppBar(title: const Text('Service Detail'), leading: const AppBackButton()),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _service == null

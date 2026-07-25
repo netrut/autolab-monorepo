@@ -14,6 +14,7 @@ import '../../features/bookings/screens/create_booking_screen.dart';
 import '../../features/bookings/screens/booking_detail_screen.dart';
 import '../../features/service_history/screens/service_history_screen.dart';
 import '../../features/service_history/screens/service_detail_screen.dart';
+import '../../features/service_history/screens/vehicle_service_list_screen.dart';
 import '../../features/invoices/screens/invoices_screen.dart';
 import '../../features/invoices/screens/invoice_detail_screen.dart';
 import '../../features/search/screens/search_screen.dart';
@@ -73,6 +74,10 @@ GoRouter createRouter(AuthProvider authProvider) {
 
       // Service History
       GoRoute(path: '/service-history', builder: (_, __) => const ServiceHistoryScreen()),
+      GoRoute(path: '/service-history/:vehicleId', builder: (_, state) => VehicleServiceListScreen(
+        vehicleId: state.pathParameters['vehicleId']!,
+        vehicleName: state.uri.queryParameters['name'],
+      )),
       GoRoute(path: '/service-detail/:serviceId', builder: (_, state) => ServiceDetailScreen(serviceId: state.pathParameters['serviceId']!)),
 
       // Invoices

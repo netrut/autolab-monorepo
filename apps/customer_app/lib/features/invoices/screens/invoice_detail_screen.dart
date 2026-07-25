@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/models/invoice_model.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_back_button.dart';
 
 class InvoiceDetailScreen extends StatefulWidget {
   final String invoiceId;
@@ -37,8 +38,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('Invoice'),
+      appBar: AppBar(title: const Text('Invoice'), leading: const AppBackButton(),
         actions: [
           if (_invoice != null)
             IconButton(

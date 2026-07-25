@@ -6,6 +6,7 @@ import '../../../core/models/request_model.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/status_badge.dart';
+import '../../../shared/widgets/app_back_button.dart';
 
 class RequestsScreen extends StatefulWidget {
   const RequestsScreen({super.key});
@@ -41,6 +42,7 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Requests'),
+        leading: const AppBackButton(),
         bottom: TabBar(
           controller: _tabCtrl,
           labelColor: AppTheme.primaryBlue,

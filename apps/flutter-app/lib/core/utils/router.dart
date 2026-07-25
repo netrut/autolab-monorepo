@@ -121,7 +121,9 @@ GoRouter createRouter(AuthProvider authProvider, {ServiceCentreProvider? service
       // ── Service routes ───────────────────────────────────────────────────
       GoRoute(
         path: '/services',
-        builder: (_, __) => const ServiceScreen(),
+        builder: (_, state) => ServiceScreen(
+          initialStatus: state.uri.queryParameters['status'],
+        ),
       ),
       GoRoute(
         path: '/service/form/:vehicleId',

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/vehicle_provider.dart';
 
@@ -17,6 +18,8 @@ class VehicleCard extends StatelessWidget {
   final String? registrationNumber;
   final String vehicleType; // 'car' | 'bike'
   final String? fuelType;
+  final String? ownerName;
+  final String? ownerPhone;
 
   /// null = no badge shown (VehiclesScreen mode)
   final String? serviceStatus;
@@ -30,6 +33,8 @@ class VehicleCard extends StatelessWidget {
     required this.vehicleType,
     this.registrationNumber,
     this.fuelType,
+    this.ownerName,
+    this.ownerPhone,
     this.serviceStatus,
     this.lastServiceDate,
     this.nextServiceDate,
@@ -81,6 +86,43 @@ class VehicleCard extends StatelessWidget {
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Owner info row
+          if (ownerName != null || ownerPhone != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.person_outline, size: 18, color: Color(0xFF7A7A7A)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      ownerName ?? ownerPhone!,
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  if (ownerPhone != null) ...[  
+                    IconButton(
+                      icon: const Icon(Icons.call_outlined, color: Color(0xFF2F9E56)),
+                      tooltip: 'Call',
+                      onPressed: () => launchUrl(Uri.parse('tel:$ownerPhone')),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chat_outlined, color: Color(0xFF2F7DE1)),
+                      tooltip: 'WhatsApp',
+                      onPressed: () {
+                        final digits = ownerPhone!.replaceAll(RegExp(r'[^0-9]'), '');
+                        final waNumber = digits.startsWith('91') ? digits : '91$digits';
+                        launchUrl(
+                          Uri.parse('https://wa.me/$waNumber'),
+                          mode: LaunchMode.externalApplication,
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          if (ownerName != null || ownerPhone != null) const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.calendar_today_outlined,
                 color: Color(0xFF2F7DE1)),

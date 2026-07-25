@@ -28,15 +28,27 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Future<void> _verify() async {
     if (!_formKey.currentState!.validate()) return;
-    final auth = context.read<AuthProvider>();
-    final ok = await auth.verifyOtp(
+    final ok = await context.read<AuthProvider>().verifyOtp(
       phone: widget.phone,
       otp: _otpCtrl.text.trim(),
     );
     if (!mounted) return;
+    final auth = context.read<AuthProvider>();
     if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error ?? 'Invalid OTP')));
+      if (auth.phoneNotFound) {
+        showDialog(
+          context: context,
+          builder: (_) => _PhoneNotFoundDialog(phone: widget.phone),
+        );
+      } else if (auth.wrongApp) {
+        showDialog(
+          context: context,
+          builder: (_) => _WrongAppDialog(),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(auth.error ?? 'Invalid OTP')));
+      }
       return;
     }
     // Post-login: resolve service centre
@@ -127,7 +139,95 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 }
 
-// ── Centre picker sheet ───────────────────────────────────────────────────────
+// ── Phone Not Found Dialog ───────────────────────────────────────────────────
+
+class _PhoneNotFoundDialog extends StatelessWidget {
+  final String phone;
+  const _PhoneNotFoundDialog({required this.phone});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3CD),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.phone_missed_outlined,
+                color: Color(0xFFB8860B), size: 28),
+          ),
+          const SizedBox(height: 16),
+          Text('Number Not Registered',
+              style: GoogleFonts.poppins(
+                  fontSize: 17, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Text(
+            'We couldn\'t find an account linked to',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+                fontSize: 13, color: const Color(0xFF7A7A7A)),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              phone,
+              style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1B1F26)),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Please check the number or create a new account.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+                fontSize: 13, color: const Color(0xFF7A7A7A), height: 1.5),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            context.pop(); // back to login screen to change number
+          },
+          child: Text('Change Number',
+              style: GoogleFonts.poppins(color: const Color(0xFF7A7A7A))),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.pop(context);
+            context.push('/auth/register');
+          },
+          icon: const Icon(Icons.person_add_outlined, size: 16),
+          label: Text('Create Account',
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w600)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1B1F26),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _CentrePickerSheet extends StatefulWidget {
   final ServiceCentreProvider provider;
@@ -246,6 +346,53 @@ class _CentrePickerSheetState extends State<_CentrePickerSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Wrong App Dialog ──────────────────────────────────────────────────────────
+
+class _WrongAppDialog extends StatelessWidget {
+  const _WrongAppDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F0FE),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.smartphone_outlined,
+                color: Color(0xFF1A73E8), size: 28),
+          ),
+          const SizedBox(height: 16),
+          Text('Wrong App',
+              style: GoogleFonts.poppins(
+                  fontSize: 17, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Text(
+            'Your account is registered as an AutoLab Customer. Please use the AutoLab Customer App to login.\n\nIf you want to register your service centre as a partner, please contact us.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+                fontSize: 13, color: const Color(0xFF7A7A7A), height: 1.5),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Close',
+              style: GoogleFonts.poppins(color: const Color(0xFF7A7A7A))),
+        ),
+      ],
     );
   }
 }

@@ -93,6 +93,8 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPending = booking.status == 'pending' || booking.status == 'confirmed';
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
@@ -109,7 +111,132 @@ class _BookingCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(booking.serviceType, style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.secondaryText)),
           const SizedBox(height: 4),
-          Text(_formatDate(booking.bookingDate), style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.secondaryText)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(_formatDate(booking.bookingDate), style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.secondaryText)),
+              if (isPending)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _showEditSheet(context, booking),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: AppTheme.primaryBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                        child: Text('Edit', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primaryBlue)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _confirmCancel(context, booking.id),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: AppTheme.error.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                        child: Text('Cancel', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.error)),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditSheet(BuildContext context, BookingModel booking) {
+    String serviceType = booking.serviceType;
+    DateTime date = booking.bookingDate;
+    final notesCtrl = TextEditingController(text: booking.notes ?? '');
+
+    final serviceTypes = ['General Service', 'Oil Change', 'Major Service', 'Brake Service', 'Tyre Change', 'Other'];
+    // Ensure current value is in the list
+    if (!serviceTypes.contains(serviceType)) {
+      serviceTypes.add(serviceType);
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(ctx).viewInsets.bottom + 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFDDDDDD), borderRadius: BorderRadius.circular(2))),
+              ),
+              const SizedBox(height: 16),
+              Text('Edit Booking', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: serviceType,
+                decoration: const InputDecoration(labelText: 'Service Type'),
+                items: serviceTypes
+                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                    .toList(),
+                onChanged: (v) => setSheetState(() => serviceType = v ?? serviceType),
+              ),
+              const SizedBox(height: 14),
+              GestureDetector(
+                onTap: () async {
+                  final picked = await showDatePicker(context: ctx, initialDate: date, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 90)));
+                  if (picked != null) setSheetState(() => date = picked);
+                },
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: TextEditingController(text: '${date.day} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][date.month-1]} ${date.year}'),
+                    decoration: const InputDecoration(labelText: 'Booking Date', suffixIcon: Icon(Icons.calendar_today, size: 18)),
+                    readOnly: true,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextFormField(controller: notesCtrl, decoration: const InputDecoration(labelText: 'Notes'), maxLines: 2),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final provider = ctx.read<BookingProvider>();
+                    await provider.updateBooking(booking.id, {
+                      'service_type': serviceType,
+                      'booking_date': date.toIso8601String(),
+                      'notes': notesCtrl.text.trim(),
+                    });
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  child: const Text('Save Changes'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmCancel(BuildContext context, String id) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Cancel Booking?', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+        content: Text('Are you sure you want to cancel this booking?', style: GoogleFonts.poppins(fontSize: 13)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('No', style: GoogleFonts.poppins(color: AppTheme.secondaryText))),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<BookingProvider>().cancelBooking(id);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error, foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            child: Text('Yes, Cancel', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
         ],
       ),
     );

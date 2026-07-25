@@ -9,7 +9,9 @@ import '../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../shared/widgets/vehicle_card.dart';
 
 class ServiceScreen extends StatefulWidget {
-  const ServiceScreen({super.key});
+  final String? initialStatus;
+
+  const ServiceScreen({super.key, this.initialStatus});
 
   @override
   State<ServiceScreen> createState() => _ServiceScreenState();
@@ -28,6 +30,10 @@ class _ServiceScreenState extends State<ServiceScreen> {
   @override
   void initState() {
     super.initState();
+    final status = widget.initialStatus;
+    if (status == 'due' || status == 'upcoming' || status == 'completed' || status == 'no_service') {
+      _statusFilter = status;
+    }
     _searchController.addListener(() => setState(() {}));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VehicleServiceProvider>().fetchVehiclesWithStatus();
@@ -305,6 +311,8 @@ class _ServiceScreenState extends State<ServiceScreen> {
                                         filtered[i].lastServiceDate,
                                     nextServiceDate:
                                         filtered[i].nextServiceDate,
+                                    ownerName: filtered[i].ownerName,
+                                    ownerPhone: filtered[i].ownerPhone,
                                   ),
                                 ),
                               ),
@@ -352,8 +360,8 @@ class _FilterSheetState extends State<_FilterSheet> {
   static const _categories = [
     'Service Status',
     'Vehicle Type',
-    'Date Range',
     'Sort By',
+    // 'Date Range',
   ];
 
   @override
@@ -369,8 +377,8 @@ class _FilterSheetState extends State<_FilterSheet> {
     switch (cat) {
       case 0: return _status;
       case 1: return _vehicleType;
-      case 2: return _date;
-      case 3: return _sort;
+      case 2: return _sort;
+      case 3: return _date;
       default: return null;
     }
   }
@@ -380,8 +388,8 @@ class _FilterSheetState extends State<_FilterSheet> {
       switch (cat) {
         case 0: _status = val;
         case 1: _vehicleType = val;
-        case 2: _date = val;
-        case 3: _sort = val;
+        case 2: _sort = val;
+        case 3: _date = val;
       }
     });
   }
@@ -404,6 +412,14 @@ class _FilterSheetState extends State<_FilterSheet> {
         ];
       case 2:
         return [
+          ('Last Serviced (newest)', 'last_serviced_newest'),
+          ('Last Serviced (oldest)', 'last_serviced_oldest'),
+          ('Next Service (soonest)', 'next_service_soonest'),
+          ('Registration (A-Z)', 'reg_az'),
+          ('Total Services (most)', 'total_services_most'),
+        ];
+      case 3:
+        return [
           ('Due Today', 'due_today'),
           ('Due Last 7 Days', 'due_7days'),
           ('Due Last 30 Days', 'due_30days'),
@@ -411,14 +427,6 @@ class _FilterSheetState extends State<_FilterSheet> {
           ('Upcoming Next 30 Days', 'upcoming_30days'),
           ('Completed Last 7 Days', 'completed_7days'),
           ('Completed Last 30 Days', 'completed_30days'),
-        ];
-      case 3:
-        return [
-          ('Last Serviced (newest)', 'last_serviced_newest'),
-          ('Last Serviced (oldest)', 'last_serviced_oldest'),
-          ('Next Service (soonest)', 'next_service_soonest'),
-          ('Registration (A-Z)', 'reg_az'),
-          ('Total Services (most)', 'total_services_most'),
         ];
       default:
         return [];

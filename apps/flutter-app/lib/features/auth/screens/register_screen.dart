@@ -38,7 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final ok = await auth.register(
       name: _nameCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
+      phone: '+91${_phoneCtrl.text.trim()}',
       password: _passwordCtrl.text,
     );
     if (!mounted) return;
@@ -95,8 +95,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   AppTextField(
                     controller: _phoneCtrl,
                     label: 'Phone Number',
-                    hint: '9876543210',
+                    hint: 'Enter your mobile number',
                     keyboardType: TextInputType.phone,
+                    prefixText: '+91 ',
                     validator: (v) =>
                         v!.length < 10 ? 'Enter valid phone number' : null,
                   ),

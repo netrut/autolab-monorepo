@@ -11,7 +11,7 @@ flutter build web --release \
 
 cd /workspaces/autolab-monorepo/apps/customer_app
 git add -f build/web
-git commit -m "Customer app web build"
+git commit -m "Customer app wrong app pop-up updated"
 git push origin main
 
 3. Vercel Configuration (new project)

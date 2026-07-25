@@ -6,6 +6,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/models/service_center_model.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/app_back_button.dart';
 
 class ServiceCentreDetailScreen extends StatefulWidget {
   final String centreId;
@@ -37,7 +38,7 @@ class _ServiceCentreDetailScreenState extends State<ServiceCentreDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Service Centre')),
+      appBar: AppBar(title: const Text('Service Centre'), leading: const AppBackButton()),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _centre == null

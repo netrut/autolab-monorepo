@@ -79,4 +79,23 @@ class VehicleProvider extends ChangeNotifier {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>> lookupByReg(String reg) async {
+    try {
+      final res = await _api.get('/api/vehicles/lookup',
+          queryParameters: {'reg': reg.trim().toUpperCase()});
+      final data = res.data as Map<String, dynamic>;
+      if (data['exists'] == true) {
+        final v = data['vehicle'] as Map<String, dynamic>;
+        return {
+          'exists': true,
+          'vehicle': VehicleModel.fromJson(v),
+          'ownerId': v['user_id'] as String?,
+        };
+      }
+      return {'exists': false};
+    } catch (_) {
+      return {'exists': false};
+    }
+  }
 }

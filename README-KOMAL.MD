@@ -25,7 +25,7 @@ eyJhcGlfa2V5IjoieGtleXNpYi00ODkyYTA3ODcwZGM3MTA4MjgxMDNiZDIwYmU4ZTI4YzkyMWZjYzRm
 
 const smsApiUrl = `https://sms.hspmedianetwork.com/sendSMS?username=ludoveer&message=OTP%20for%20login%20HireForCare%20is%20${otp}.&sendername=HIFCAR&smstype=TRANS&numbers=91${phone}&apikey=d35d1647-fb94-4ad5-843c-65e35c2eb93a`;
 
----
+## durect test kubj = https://sms.hspmedianetwork.com/sendSMS?username=ludoveer&message=OTP%20for%20login%20HireForCare%20is%205555.&sendername=HIFCAR&smstype=TRANS&numbers=919828096110&apikey=d35d1647-fb94-4ad5-843c-65e35c2eb93a
 
 Restart backend port
 $port=3000; $repo='D:\komal\GitHub\autolab-monorepo'; $backend=Join-Path $repo 'apps\backend'; $pids=(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique); if($pids){$pids | ForEach-Object { Stop-Process -Id $\_ -Force -ErrorAction SilentlyContinue }}; Set-Location $backend; $env:DATABASE_URL='postgresql://postgres.kdbcukdrbwwsgntrsvdi:AutoLab%402024%23@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres?schema=autolab_api'; npm run dev
@@ -66,4 +66,4 @@ So please please implement auth as required in this shadcn dashboard ((apps/dash
 
 Note: you can take reference and the login template from the folder shadcn-dashboard-template, which we used to develop the dashboard (apps/dashboard/)
 
-Now implemented auth system in the dashboard and the backend APIs requires auth so please check I hope all auth flow setup and working proparly as required 
+Now implemented auth system in the dashboard and the backend APIs requires auth so please check I hope all auth flow setup and working proparly as required

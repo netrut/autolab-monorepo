@@ -94,6 +94,8 @@ class VehicleWithServiceStatus {
   final DateTime? lastServiceDate;
   final DateTime? nextServiceDate;
   final int totalServices;
+  final String? ownerName;
+  final String? ownerPhone;
 
   const VehicleWithServiceStatus({
     required this.id,
@@ -108,6 +110,8 @@ class VehicleWithServiceStatus {
     this.lastServiceDate,
     this.nextServiceDate,
     required this.totalServices,
+    this.ownerName,
+    this.ownerPhone,
   });
 
   factory VehicleWithServiceStatus.fromJson(Map<String, dynamic> json) =>
@@ -128,6 +132,8 @@ class VehicleWithServiceStatus {
             ? DateTime.tryParse(json['next_service_date'] as String)
             : null,
         totalServices: json['total_services'] as int? ?? 0,
+        ownerName: json['owner_name'] as String?,
+        ownerPhone: json['owner_phone'] as String?,
       );
 
   bool get isCar => vehicleType.toLowerCase() == 'car';

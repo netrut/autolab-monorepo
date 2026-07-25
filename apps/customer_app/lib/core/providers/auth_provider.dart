@@ -10,6 +10,8 @@ class AuthProvider extends ChangeNotifier {
   String? _error;
   bool _emailNotVerified = false;
   String? _unverifiedEmail;
+  bool _phoneNotFound = false;
+  bool _wrongApp = false;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
@@ -17,6 +19,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _user != null;
   bool get emailNotVerified => _emailNotVerified;
   String? get unverifiedEmail => _unverifiedEmail;
+  bool get phoneNotFound => _phoneNotFound;
+  bool get wrongApp => _wrongApp;
 
   static const _keyUserId = 'user_id';
   final _api = ApiClient();
@@ -38,12 +42,20 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _emailNotVerified = false;
     _unverifiedEmail = null;
+    _wrongApp = false;
     try {
       final res = await _api.post('/api/auth/login',
           data: {'email': email, 'password': password});
       final body = res.data as Map<String, dynamic>;
+      final user = UserModel.fromJson(body['user'] as Map<String, dynamic>);
+      if (user.roleId == 2) {
+        _wrongApp = true;
+        _error = 'wrong_app';
+        notifyListeners();
+        return false;
+      }
       await ApiClient.saveToken(body['token'] as String);
-      _user = UserModel.fromJson(body['user'] as Map<String, dynamic>);
+      _user = user;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyUserId, _user!.id);
       _error = null;
@@ -80,6 +92,7 @@ class AuthProvider extends ChangeNotifier {
         'phone': phone,
         'password': password,
         'name': name,
+        'role_id': 3, // Customer
       });
       _error = null;
       notifyListeners();
@@ -95,12 +108,24 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> sendOtp(String phone) async {
     _setLoading(true);
+    _phoneNotFound = false;
+    _wrongApp = false;
     try {
-      await _api.post('/api/auth/send-otp', data: {'phone': phone});
+      final res = await _api.post('/api/auth/send-otp', data: {'phone': phone});
+      final roleId = (res.data as Map<String, dynamic>)['role_id'] as int?;
+      if (roleId == 2) {
+        _wrongApp = true;
+        _error = 'wrong_app';
+        notifyListeners();
+        return false;
+      }
       _error = null;
       notifyListeners();
       return true;
     } catch (e) {
+      if (e is DioException && e.response?.statusCode == 404) {
+        _phoneNotFound = true;
+      }
       _error = _parseError(e);
       notifyListeners();
       return false;
@@ -112,28 +137,31 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> verifyOtp({
     required String phone,
     required String otp,
-    String? name,
-    String? email,
-    String? password,
   }) async {
     _setLoading(true);
+    _phoneNotFound = false;
+    _wrongApp = false;
     try {
-      final res = await _api.post('/api/auth/verify-otp', data: {
-        'phone': phone,
-        'otp': otp,
-        if (name != null) 'name': name,
-        if (email != null) 'email': email,
-        if (password != null) 'password': password,
-      });
+      final res = await _api.post('/api/auth/verify-otp', data: {'phone': phone, 'otp': otp});
       final body = res.data as Map<String, dynamic>;
+      final user = UserModel.fromJson(body['user'] as Map<String, dynamic>);
+      if (user.roleId == 2) {
+        _wrongApp = true;
+        _error = 'wrong_app';
+        notifyListeners();
+        return false;
+      }
       await ApiClient.saveToken(body['token'] as String);
-      _user = UserModel.fromJson(body['user'] as Map<String, dynamic>);
+      _user = user;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyUserId, _user!.id);
       _error = null;
       notifyListeners();
       return true;
     } catch (e) {
+      if (e is DioException && e.response?.statusCode == 404) {
+        _phoneNotFound = true;
+      }
       _error = _parseError(e);
       notifyListeners();
       return false;
@@ -179,6 +207,8 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     _emailNotVerified = false;
     _unverifiedEmail = null;
+    _phoneNotFound = false;
+    _wrongApp = false;
     notifyListeners();
   }
 

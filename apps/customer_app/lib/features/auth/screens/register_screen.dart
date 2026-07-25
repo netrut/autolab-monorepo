@@ -38,7 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final success = await auth.register(
       name: _nameCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
+      phone: '+91${_phoneCtrl.text.trim()}',
       password: _passwordCtrl.text,
     );
     if (success && mounted) {
@@ -72,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 16),
                 AppTextField(label: 'Email', controller: _emailCtrl, keyboardType: TextInputType.emailAddress, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
                 const SizedBox(height: 16),
-                AppTextField(label: 'Phone Number', controller: _phoneCtrl, keyboardType: TextInputType.phone, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
+                AppTextField(label: 'Phone Number', controller: _phoneCtrl, keyboardType: TextInputType.phone, prefixText: '+91 ', validator: (v) => v == null || v.length < 10 ? 'Enter valid phone number' : null),
                 const SizedBox(height: 16),
                 AppTextField(
                   label: 'Password',

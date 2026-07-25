@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -27,6 +28,19 @@ class _ServicesScreenState extends State<ServicesScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VehicleProvider>().fetchVehicles();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Read optional status query param from the current location and pre-set the filter
+    try {
+      final loc = GoRouter.of(context).location;
+      final status = Uri.parse(loc).queryParameters['status'];
+      if (status != null && _selectedServiceFilter == null) {
+        setState(() => _selectedServiceFilter = status);
+      }
+    } catch (_) {}
   }
 
   @override

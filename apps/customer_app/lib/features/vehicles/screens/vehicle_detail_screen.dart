@@ -12,6 +12,7 @@ import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/status_badge.dart';
+import '../../../shared/widgets/app_back_button.dart';
 
 class VehicleDetailScreen extends StatefulWidget {
   final String vehicleId;
@@ -47,6 +48,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Vehicle Details'),
+        leading: const AppBackButton(),
         actions: [
           if (_vehicle != null)
             IconButton(
@@ -79,7 +81,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                           Text('Service History', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
                           if (svc.history.isNotEmpty)
                             TextButton(
-                              onPressed: () => context.push('/service-history'),
+                              onPressed: () => context.push('/service-history/${widget.vehicleId}?name=${Uri.encodeComponent(_vehicle?.displayName ?? 'Vehicle')}'),
                               child: Text('View All', style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.primaryBlue)),
                             ),
                         ],

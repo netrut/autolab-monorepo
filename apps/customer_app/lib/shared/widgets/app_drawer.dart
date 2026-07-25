@@ -77,9 +77,35 @@ class AppDrawer extends StatelessWidget {
                 icon: Icons.logout_outlined,
                 label: 'Logout',
                 color: AppTheme.error,
-                onTap: () async {
-                  Navigator.pop(context);
-                  await auth.logout();
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: Text('Logout', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+                      content: Text('Are you sure you want to logout?', style: GoogleFonts.poppins(fontSize: 13)),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Cancel', style: GoogleFonts.poppins(color: AppTheme.secondaryText)),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            Navigator.pop(context); // close dialog
+                            Navigator.pop(context); // close drawer
+                            await auth.logout();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.error,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: Text('Logout', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  );
                 },
               ),
             ),

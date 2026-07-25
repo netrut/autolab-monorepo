@@ -5,6 +5,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/models/invoice_model.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/app_back_button.dart';
 
 class InvoicesScreen extends StatefulWidget {
   const InvoicesScreen({super.key});
@@ -36,7 +37,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Invoices')),
+      appBar: AppBar(title: const Text('Invoices'), leading: const AppBackButton()),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _invoices.isEmpty
