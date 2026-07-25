@@ -6,7 +6,8 @@ class ApiClient {
 
   static const String baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'https://zany-xylophone-6qwx9w6g9rc5g9x-3002.app.github.dev',
+    defaultValue: 'https://autolab-api.vercel.app',
+    // defaultValue: 'https://zany-xylophone-6qwx9w6g9rc5g9x-3002.app.github.dev',
   );
 
   static final ApiClient _instance = ApiClient._internal();
