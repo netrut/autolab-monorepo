@@ -12,7 +12,19 @@ export const bookingController = {
       const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
       const skip = (pageNum - 1) * limitNum;
 
+      // Scope to vehicles accessible by the logged-in user via vehicle_user_map
+      const userId = req.user?.userId;
+      let vehicleIds: string[] | undefined;
+      if (userId) {
+        const maps = await prisma.vehicleUserMap.findMany({
+          where: { user_id: userId },
+          select: { vehicle_id: true },
+        });
+        vehicleIds = maps.map(m => m.vehicle_id);
+      }
+
       const where: any = {};
+      if (vehicleIds !== undefined) where.vehicle_id = { in: vehicleIds };
       if (status) where.status = status;
       if (service_center_id) where.service_center_id = service_center_id;
       if (search) {
