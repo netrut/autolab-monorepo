@@ -125,7 +125,7 @@ export const authController = {
       // Send OTP via SMS
       await smsService.sendOTP(phone, otp);
 
-      res.json({ message: 'OTP sent successfully' });
+      res.json({ message: 'OTP sent successfully', role_id: user.role_id });
     } catch (error) {
       res.status(500).json({ error: 'Failed to send OTP' });
     }
