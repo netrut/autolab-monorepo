@@ -27,11 +27,13 @@ export default function DownloadPage() {
             <p className="text-gray-600 mb-8">For mechanics & service centres. Manage vehicles, log services, generate invoices.</p>
 
             <div className="space-y-3">
-              <a href="#" className="block w-full rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
-                ▶ Google Play Store
+              <a href="/downloads/autolab-service-centre.apk" download className="block w-full rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
+                ▶ Download APK (Android)
+                {/* Google Play Store*/}
               </a>
-              <a href="#" className="block w-full rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
-                 Apple App Store
+              <a href="#" className="block w-full rounded-lg bg-gray-500 px-6 py-3 text-sm font-medium text-white cursor-not-allowed">
+                 Apple App Store (Coming Soon)
+                 {/* Apple App Store */}
               </a>
               <a
                 href="https://autolab-partner-app.vercel.app"
@@ -53,11 +55,13 @@ export default function DownloadPage() {
             <p className="text-gray-600 mb-8">For vehicle owners. Track service history, get reminders, view invoices.</p>
 
             <div className="space-y-3">
-              <a href="#" className="block w-full rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
-                ▶ Google Play Store
+              <a href="/downloads/autolab-customer-app.apk" download className="block w-full rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
+                ▶ Download APK (Android)
+                {/* Apple App Store */}
               </a>
-              <a href="#" className="block w-full rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
-                 Apple App Store
+              <a href="#" className="block w-full rounded-lg bg-gray-500 px-6 py-3 text-sm font-medium text-white cursor-not-allowed">
+                 Apple App Store (Coming Soon)
+                 {/* Apple App Store */}
               </a>
               <a
                 href="https://autolab-customer-app.vercel.app"
