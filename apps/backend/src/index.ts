@@ -66,6 +66,7 @@ const allowedOrigins = [
   process.env.NEXT_PUBLIC_DASHBOARD_URL,
   "http://localhost:3000",
   "http://localhost:3001",
+  "http://localhost:54987",
   "https://autolab-dashboard.vercel.app",
   "https://autolab-app.vercel.app",
   "https://autolab-partner-app.vercel.app",
