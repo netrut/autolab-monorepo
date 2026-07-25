@@ -107,6 +107,12 @@ export const authController = {
     try {
       const { phone } = req.body;
 
+      // Check if phone is registered before sending OTP
+      const user = await prisma.user.findUnique({ where: { phone_number: phone } });
+      if (!user) {
+        return res.status(404).json({ error: 'No account found with this phone number. Please register first.' });
+      }
+
       // Generate 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -128,8 +134,7 @@ export const authController = {
   // Verify OTP
   async verifyOTP(req: Request, res: Response) {
     try {
-      const { phone, otp, name, email, password, role_id } = req.body;
-      const resolvedRoleId = normalizeRoleId(role_id);
+      const { phone, otp } = req.body;
 
       // Get stored OTP
       const storedOTP = otpStore.get(phone);
@@ -142,37 +147,13 @@ export const authController = {
         return res.status(400).json({ error: 'OTP expired' });
       }
 
-      // Hash password
-      const hashedPassword = await bcryptjs.hash(password, 10);
-
-      // Create or update user
-      let user = await prisma.user.findUnique({
+      // Find existing user — OTP login never creates a new account
+      const user = await prisma.user.findUnique({
         where: { phone_number: phone },
       });
 
       if (!user) {
-        user = await prisma.user.create({
-          data: {
-            email: email || `${phone}@autolab.com`,
-            phone_number: phone,
-            password_hash: hashedPassword,
-            display_name: name,
-            role_id: resolvedRoleId,
-          },
-        });
-
-        // Send welcome notification for new user
-        try {
-          const welcomeNotification = getWelcomeNotification(resolvedRoleId);
-          await createNotification({
-            userId: user.id,
-            type: 'system',
-            title: welcomeNotification.title,
-            body: welcomeNotification.body,
-          });
-        } catch (_) {
-          // non-fatal
-        }
+        return res.status(404).json({ error: 'No account found with this phone number. Please register first.' });
       }
 
       // Generate JWT
@@ -191,8 +172,10 @@ export const authController = {
         user: {
           id: user.id,
           email: user.email,
-          name: user.display_name,
-          phone: user.phone_number,
+          display_name: user.display_name,
+          phone_number: user.phone_number,
+          role_id: user.role_id,
+          is_active: user.is_active,
         },
       });
     } catch (error) {
@@ -242,9 +225,10 @@ export const authController = {
         user: {
           id: user.id,
           email: user.email,
-          name: user.display_name,
-          phone: user.phone_number,
-          role: user.role_id,
+          display_name: user.display_name,
+          phone_number: user.phone_number,
+          role_id: user.role_id,
+          is_active: user.is_active,
         },
       });
     } catch (error) {
