@@ -55,7 +55,7 @@ class ServiceCenterModel {
       ServiceCenterModel(
         id: json['id'] as String,
         name: json['name'] as String,
-        phone: json['phone'] as String,
+        phone: json['phone']?.toString() ?? '',
         description: json['description'] as String?,
         email: json['email'] as String?,
         address: json['address'] as String?,

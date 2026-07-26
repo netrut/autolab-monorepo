@@ -34,9 +34,17 @@ class _SearchScreenState extends State<SearchScreen> {
       if (_vehicleTypeFilter != null) params['vehicleTypes'] = _vehicleTypeFilter;
       if (_serviceTypeFilter != null) params['serviceTypes'] = _serviceTypeFilter;
       final res = await ApiClient().get('/api/service-centers', queryParameters: params.isNotEmpty ? params : null);
-      final list = (res.data['centers'] ?? []) as List;
-      _results = list.map((e) => ServiceCenterModel.fromJson(e as Map<String, dynamic>)).toList();
-    } catch (_) {}
+      final data = res.data;
+      final list = (data is Map ? (data['centers'] ?? []) : []) as List;
+      _results = list.map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        // ensure phone is never null
+        map['phone'] = map['phone']?.toString() ?? '';
+        return ServiceCenterModel.fromJson(map);
+      }).toList();
+    } catch (e) {
+      debugPrint('SearchScreen error: $e');
+    }
     if (mounted) setState(() => _loading = false);
   }
 
