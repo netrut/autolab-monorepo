@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import DownloadButton from './DownloadButton';
 
 const API = 'https://autolab-api.vercel.app';
 
@@ -22,6 +23,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <style>{`@media print { .no-print { display: none !important; } body { background: white; } }`}</style>
       <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
         {/* Header */}
@@ -90,6 +92,12 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               {inv.footer_text}
             </p>
           )}
+
+          {/* Download Button */}
+          <div className="no-print">
+            <DownloadButton />
+          </div>
+
         </div>
       </div>
     </div>
