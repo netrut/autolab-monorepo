@@ -11,7 +11,6 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { env } from "./config/env.js";
-import prisma from "./config/prisma.js";
 
 // Import all route modules
 import authRoutes from "./routes/auth.routes.js";
@@ -35,16 +34,7 @@ const app: any = express();
 // Required so express-rate-limit reads the real client IP from X-Forwarded-For
 app.set("trust proxy", 1);
 
-// Initialize Prisma (database) — singleton shared across all controllers
-
-(async function initDb() {
-  try {
-    await prisma.$connect();
-    console.log("Database connected");
-  } catch (err) {
-    console.error("Failed to connect to database:", err);
-  }
-})();
+// Prisma connects lazily per-query in serverless — no eager $connect needed
 
 // Security headers
 app.use(helmet());
@@ -173,18 +163,5 @@ app.use((err: any, req: any, res: any, next: any) => {
     timestamp: new Date().toISOString(),
   });
 });
-
-// Graceful shutdown: disconnect Prisma
-async function shutdown() {
-  try {
-    await prisma.$disconnect();
-    console.log("Database disconnected");
-  } catch (err) {
-    console.error("Error during disconnection:", err);
-  }
-}
-
-process.on("SIGINT", () => void shutdown().then(() => process.exit(0)));
-process.on("SIGTERM", () => void shutdown().then(() => process.exit(0)));
 
 export default app;
