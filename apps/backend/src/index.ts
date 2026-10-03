@@ -11,6 +11,11 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { env } from "./config/env.js";
+import prisma from "./config/prisma.js";
+
+// DB connection status — checked lazily on first request
+let dbStatus: 'unknown' | 'connected' | 'error' = 'unknown';
+let dbError: string | null = null;
 
 // Import all route modules
 import authRoutes from "./routes/auth.routes.js";
@@ -34,7 +39,7 @@ const app: any = express();
 // Required so express-rate-limit reads the real client IP from X-Forwarded-For
 app.set("trust proxy", 1);
 
-// Prisma connects lazily per-query in serverless — no eager $connect needed
+
 
 // Security headers
 app.use(helmet());
@@ -106,20 +111,36 @@ const authLimiter = rateLimit({
 
 app.use("/api/", apiLimiter);
 
-app.get("/health", (req: any, res: any) => {
+async function checkDb() {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbStatus = 'connected';
+    dbError = null;
+  } catch (err: any) {
+    dbStatus = 'error';
+    dbError = err?.message ?? 'Unknown error';
+  }
+}
+
+app.get("/health", async (req: any, res: any) => {
+  await checkDb();
   res.json({
-    status: "OK",
-    message: "Server is running",
+    status: dbStatus === 'connected' ? "OK" : "DEGRADED",
+    database: dbStatus,
+    db_error: dbError,
     timestamp: new Date().toISOString(),
     environment: env.server.nodeEnv,
   });
 });
 
-app.get("/", (req: any, res: any) => {
+app.get("/", async (req: any, res: any) => {
+  await checkDb();
   res.json({
-    message: "AutoLab API - Single Handler (Vercel Compatible)",
+    message: "AutoLab API",
     version: "1.0.0",
-    description: "All endpoints consolidated into a single Vercel function",
+    database: dbStatus,
+    db_error: dbError,
+    timestamp: new Date().toISOString(),
   });
 });
 
