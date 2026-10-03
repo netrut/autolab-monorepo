@@ -396,3 +396,7 @@ Node.js installed successfully. Now add it to PATH permanently and verify:
 
 
 echo 'export PATH="/opt/homebrew/bin:$PATH"' >> /Users/developer/.zshrc && /opt/homebrew/bin/node --version && /opt/homebrew/bin/npm --version
+
+-----------------------
+kill running backend port 
+lsof -ti:3002 | xargs kill -9 2>/dev/null; echo "Port 3002 cleared"
