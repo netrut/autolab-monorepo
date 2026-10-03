@@ -43,10 +43,6 @@ app.set("trust proxy", 1);
     console.log("Database connected");
   } catch (err) {
     console.error("Failed to connect to database:", err);
-    if (env.server.nodeEnv === "production") {
-      // In production we want to fail fast if DB is unavailable
-      process.exit(1);
-    }
   }
 })();
 
