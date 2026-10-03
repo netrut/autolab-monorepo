@@ -390,3 +390,9 @@ Files changed below:-
  M package.json
 ?? apps/backend/api/
 ---------------------------------------
+
+Mac systeam update:
+Node.js installed successfully. Now add it to PATH permanently and verify:
+
+
+echo 'export PATH="/opt/homebrew/bin:$PATH"' >> /Users/developer/.zshrc && /opt/homebrew/bin/node --version && /opt/homebrew/bin/npm --version
