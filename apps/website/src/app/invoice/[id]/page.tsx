@@ -23,8 +23,15 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <style>{`@media print { .no-print { display: none !important; } body { background: white; } }`}</style>
-      <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          nav, footer, header { display: none !important; }
+          body { background: white !important; margin: 0 !important; }
+          .invoice-card { box-shadow: none !important; border: none !important; border-radius: 0 !important; max-width: 100% !important; }
+        }
+      `}</style>
+      <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden invoice-card">
 
         {/* Header */}
         <div className="bg-gray-900 text-white px-6 py-5 flex justify-between items-start">
