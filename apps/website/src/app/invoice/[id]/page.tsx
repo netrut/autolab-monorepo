@@ -12,8 +12,9 @@ async function getInvoice(id: string) {
   }
 }
 
-export default async function InvoicePage({ params }: { params: { id: string } }) {
-  const inv = await getInvoice(params.id);
+export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const inv = await getInvoice(id);
   if (!inv) notFound();
 
   const svc = inv.service;
