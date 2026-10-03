@@ -175,3 +175,5 @@ flutter build apk --debug \
  --dart-define=API_URL=https://autolab-api.vercel.app
 
 APK location: apps/flutter-app/build/app/outputs/flutter-apk/app-debug.apk
+
+flutter run -d emulator-5554

@@ -232,12 +232,15 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             '${svc.registrationNumber != null ? ' (${svc.registrationNumber})' : ''}'
         : '';
 
+    final invoiceLink = 'https://autolab-website.vercel.app/invoice/${inv.id}/';
+
     final msg = Uri.encodeComponent(
       '🔧 *Service Invoice — ${options.serviceCentreName}*\n\n'
       '📋 Invoice: ${inv.invoiceNumber}\n'
       '🚗 Vehicle: $vehicle\n'
       '📅 Date: ${DateFormat('dd MMM yyyy').format(inv.serviceDate)}\n'
       '💰 Total: ₹${inv.totalCost.toStringAsFixed(0)}\n\n'
+      '🔗 View Invoice: $invoiceLink\n\n'
       '${options.invoiceFooterText}',
     );
 
