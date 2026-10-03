@@ -4,9 +4,6 @@ import { invoiceController } from '../controllers/invoiceController.js';
 
 const router: express.Router = express.Router();
 
-// Public — view invoice by ID (for shareable links)
-router.get('/public/:id', invoiceController.getPublicById);
-
 router.use(authMiddleware);
 
 router.get('/my', invoiceController.listMy);
